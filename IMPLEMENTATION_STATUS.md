@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-**Phase 0 — Repository scaffolding and documentation**
+**Phase 1 — Monorepo scaffold**
 
-No application code exists yet. This phase establishes project requirements, README, editor defaults, and git ignore rules.
+Backend and frontend project structures are in place with dependencies installed. No business logic, API routes, or database models yet.
 
 ## Completed Work
 
@@ -15,66 +15,82 @@ No application code exists yet. This phase establishes project requirements, REA
 - [x] Created `IMPLEMENTATION_STATUS.md` (this file)
 - [x] Created `.gitignore` for Python, Node, and IDE artifacts
 - [x] Created `.editorconfig` for consistent formatting
-- [x] Created `README.md` with title, problem statement, architecture summary, and placeholder setup sections
+- [x] Created `README.md` with title, problem statement, and architecture summary
+
+### Phase 1 (in progress)
+
+- [x] Monorepo layout: `backend/`, `frontend/`, `scripts/`, `docs/`, `docker/`
+- [x] Root `.env.example` with all required environment variables
+- [x] Placeholder `docker-compose.yml`
+- [x] Backend `pyproject.toml` with uv, production and dev dependencies, Ruff config
+- [x] Backend package scaffold: `app/{api,models,schemas,services,agents,crews,flows,tools,core,seed}` + `tests/`
+- [x] Backend `uv.lock` generated; `uv sync --all-groups` succeeds
+- [x] Frontend Vite React TypeScript app with strict TypeScript
+- [x] Frontend deps: react-router-dom, TanStack Query, Recharts, Lucide, Sonner, clsx, tailwind-merge, Tailwind v4
+- [x] Minimal RetainAI landing page replacing default Vite screen
+- [x] `npm install` and `npm run build` succeed
+- [x] Updated root `README.md` setup sections
+
+### Not yet started (Phase 1 remainder)
+
+- [ ] `app/main.py` with health check route
+- [ ] `app/core/config.py` (Pydantic Settings)
+- [ ] `app/core/db.py` (SQLModel + SQLite)
+- [ ] Synthetic seed data models
+- [ ] pytest for health endpoint and settings
 
 ## Validation Commands
 
-Run these after each phase to confirm the repo is healthy.
-
-### Phase 0 (current)
+### Monorepo scaffold (current)
 
 ```bash
-# Confirm documentation files exist
-ls PROJECT_REQUIREMENTS.md IMPLEMENTATION_STATUS.md README.md .gitignore .editorconfig
+# Backend — dependency resolution
+cd backend
+uv sync --all-groups
+uv run ruff check .
 
-# Confirm no application code was added prematurely
-# (expect only docs and config at repo root)
-git status
+# Frontend — install and build
+cd frontend
+npm install
+npm run build
 ```
 
-### Future phases (not yet applicable)
+### After backend foundation is added
 
 ```bash
-# Backend
 cd backend
-python -m pytest
-ruff check .
-
-# Frontend
-cd frontend
-npm run lint
-npm run build
-npm test
+uv run pytest
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+curl http://localhost:8000/health
 ```
 
 ## Known Issues
 
 | Issue | Severity | Notes |
 |-------|----------|-------|
-| No backend or frontend code yet | Expected | Phase 0 is documentation-only |
-| No CI pipeline | Low | Add in a later phase |
-| No `.env.example` yet | Low | Add when backend settings are implemented |
+| No API server yet | Expected | `app/main.py` not implemented |
+| Python 3.13 used locally | Low | `requires-python = ">=3.11"`; pin 3.11 in CI if needed |
+| Docker services empty | Expected | Dockerfiles added in a later phase |
+| CrewAI pulls large transitive deps | Low | Normal for crewai 0.203.x; no agent code yet |
 
 ## Next Recommended Prompt
 
-Use this prompt to begin **Phase 1 — Backend foundation**:
+Use this prompt to complete **Phase 1 — Backend foundation**:
 
 ---
 
-**Phase 1 — Backend foundation**
+**Phase 1 — Backend foundation (continued)**
 
-Create the backend scaffold for RetainAI:
+Implement the backend application shell:
 
-1. Add a `backend/` directory with:
-   - `pyproject.toml` (Python 3.11, FastAPI, SQLModel, pydantic-settings, pytest, ruff)
-   - `app/` package with `main.py`, `config.py` (Pydantic Settings), and `db.py` (SQLModel + SQLite)
-   - Health check route: `GET /health`
-   - `.env.example` documenting all settings including `MOCK_LLM_MODE`
-2. Add synthetic seed data models (Customer, Account, Interaction) — no real PII.
-3. Add a minimal pytest test for the health endpoint and settings loading.
-4. Update `README.md` setup sections for backend install/run.
-5. Update this `IMPLEMENTATION_STATUS.md` to Phase 1 with validation commands.
+1. Add `app/core/config.py` — Pydantic Settings loading from `.env` (all variables in `.env.example`).
+2. Add `app/core/db.py` — SQLModel engine and session dependency for SQLite.
+3. Add `app/main.py` — FastAPI app with CORS, `GET /health`, and lifespan hook placeholder.
+4. Add synthetic SQLModel models in `app/models/`: `Customer`, `Account`, `Interaction` (no real PII).
+5. Add `app/seed/` loader for synthetic demo data.
+6. Add pytest tests: settings load, health endpoint returns 200.
+7. Update `IMPLEMENTATION_STATUS.md` and mark Phase 1 complete when tests pass.
 
-Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI, WebSockets, or frontend code in this phase.
+Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI agents, WebSockets, or frontend routes yet.
 
 ---

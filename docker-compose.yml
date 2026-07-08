@@ -1,0 +1,6 @@
+# RetainAI — Docker Compose (scaffold)
+#
+# Services will be defined in a later phase once the backend and frontend
+# Dockerfiles are implemented. Copy .env.example to .env before running.
+
+services: {}

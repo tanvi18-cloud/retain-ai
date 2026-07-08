@@ -11,13 +11,24 @@ Retail banking Relationship Managers manage large customer portfolios under time
 ## Architecture Summary
 
 ```text
+retain-ai/
+├── backend/          # FastAPI + SQLModel + CrewAI
+├── frontend/         # React + TypeScript + Vite
+├── scripts/          # Dev and validation scripts
+├── docs/             # Extended documentation
+├── docker/           # Container definitions (later phases)
+├── .env.example      # Environment variable template
+└── docker-compose.yml
+```
+
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                     React + TypeScript (Vite)                   │
 │   Dashboard · Portfolio · Alerts (WebSocket) · Copilot Chat     │
 └────────────────────────────┬────────────────────────────────────┘
                              │ REST / WebSocket
 ┌────────────────────────────▼────────────────────────────────────┐
-│                      FastAPI (Python 3.11)                      │
+│                      FastAPI (Python 3.11+)                       │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
 │  │ Scoring      │  │ Approved     │  │ CrewAI Agents        │ │
 │  │ (deterministic)│ │ Offers       │  │ (Pydantic outputs)   │ │
@@ -45,27 +56,71 @@ See [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md) for the full requiremen
 
 ## Prerequisites
 
-<!-- To be filled in Phase 1+ -->
+- Python 3.11+ (3.13 tested)
+- [uv](https://docs.astral.sh/uv/) for Python dependency management (`pip install uv`)
+- Node.js 20+ and npm
 
 ## Backend Setup
 
-<!-- To be filled in Phase 1 -->
+```bash
+cp .env.example .env
+cd backend
+uv sync --all-groups
+```
+
+See [backend/README.md](./backend/README.md) for package layout and commands.
 
 ## Frontend Setup
 
-<!-- To be filled in Phase 5 -->
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The dev server runs at http://localhost:5173. See [frontend/README.md](./frontend/README.md) for details.
 
 ## Environment Variables
 
-<!-- To be filled in Phase 1 -->
+Copy the template and adjust as needed:
+
+```bash
+cp .env.example .env
+```
+
+Key variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `MOCK_LLM_MODE` | Run without a live LLM (`true` for local dev) |
+| `DATABASE_URL` | SQLite connection string |
+| `FRONTEND_ORIGIN` | CORS origin for the Vite dev server |
+| `QWEN_*` | OpenAI-compatible Qwen endpoint settings |
+| `SMTP_*` | Development email (e.g. Mailhog on port 1025) |
+| `ALERT_PRIORITY_THRESHOLD` | Score threshold for high-priority alerts |
+
+Full list: [.env.example](./.env.example)
 
 ## Running Tests
 
-<!-- To be filled in Phase 1 -->
+```bash
+# Backend (once tests are implemented)
+cd backend
+uv run pytest
+
+# Frontend build verification
+cd frontend
+npm run build
+```
 
 ## Development Workflow
 
-<!-- To be filled in as phases complete -->
+1. Copy `.env.example` to `.env` at the repo root.
+2. Start the backend API (once `app/main.py` exists): `cd backend && uv run uvicorn app.main:app --reload`
+3. Start the frontend: `cd frontend && npm run dev`
+4. Run lint before committing:
+   - Backend: `cd backend && uv run ruff check .`
+   - Frontend: `cd frontend && npm run lint`
 
 ## License
 
