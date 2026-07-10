@@ -1,0 +1,118 @@
+{
+  "metadata": {
+    "source_system": "CREDIT_BUREAU",
+    "last_updated": "2026-07-01T06:30:00+00:00"
+  },
+  "credit_profiles": [
+    {
+      "id": "CP-C001",
+      "customer_id": "C001",
+      "credit_score": 792,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 18.5,
+      "active_loans": 1,
+      "recent_credit_inquiries": 1,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C002",
+      "customer_id": "C002",
+      "credit_score": 748,
+      "max_dpd_12m": 5,
+      "credit_utilization_pct": 34.0,
+      "active_loans": 0,
+      "recent_credit_inquiries": 1,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C003",
+      "customer_id": "C003",
+      "credit_score": 761,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 22.0,
+      "active_loans": 1,
+      "recent_credit_inquiries": 0,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C004",
+      "customer_id": "C004",
+      "credit_score": 582,
+      "max_dpd_12m": 60,
+      "credit_utilization_pct": 78.0,
+      "active_loans": 2,
+      "recent_credit_inquiries": 2,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C005",
+      "customer_id": "C005",
+      "credit_score": 705,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 28.0,
+      "active_loans": 1,
+      "recent_credit_inquiries": 0,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C006",
+      "customer_id": "C006",
+      "credit_score": 698,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 15.0,
+      "active_loans": 0,
+      "recent_credit_inquiries": 1,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C007",
+      "customer_id": "C007",
+      "credit_score": 736,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 31.0,
+      "active_loans": 0,
+      "recent_credit_inquiries": 1,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C008",
+      "customer_id": "C008",
+      "credit_score": 768,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 12.0,
+      "active_loans": 0,
+      "recent_credit_inquiries": 0,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C009",
+      "customer_id": "C009",
+      "credit_score": 781,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 20.0,
+      "active_loans": 1,
+      "recent_credit_inquiries": 0,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    },
+    {
+      "id": "CP-C010",
+      "customer_id": "C010",
+      "credit_score": 712,
+      "max_dpd_12m": 0,
+      "credit_utilization_pct": 19.0,
+      "active_loans": 0,
+      "recent_credit_inquiries": 0,
+      "default_flag": false,
+      "last_updated": "2026-07-01T06:30:00+00:00"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "source_system": "CRM",
+    "last_updated": "2026-06-28T10:00:00+00:00"
+  },
+  "interactions": [
+    {
+      "id": "INT-C001-001",
+      "customer_id": "C001",
+      "recommendation_id": null,
+      "rm_id": "RM001",
+      "action_type": "WELCOME_CALL",
+      "notes": "Annual relationship review completed; no concerns raised at the time.",
+      "offer_presented": false,
+      "customer_response": "Satisfied with current service"
+    },
+    {
+      "id": "INT-C003-001",
+      "customer_id": "C003",
+      "recommendation_id": null,
+      "rm_id": "RM002",
+      "action_type": "OUTBOUND_CALL",
+      "notes": "Attempted call regarding reduced salary credits; no answer.",
+      "offer_presented": false,
+      "customer_response": null
+    },
+    {
+      "id": "INT-C004-001",
+      "customer_id": "C004",
+      "recommendation_id": null,
+      "rm_id": "RM002",
+      "action_type": "SMS",
+      "notes": "Payment reminder sent for overdue personal loan installment.",
+      "offer_presented": false,
+      "customer_response": "Requested callback"
+    },
+    {
+      "id": "INT-C005-001",
+      "customer_id": "C005",
+      "recommendation_id": null,
+      "rm_id": "RM001",
+      "action_type": "EMAIL",
+      "notes": "Sent product usage summary and digital banking tips.",
+      "offer_presented": false,
+      "customer_response": null
+    },
+    {
+      "id": "INT-C008-001",
+      "customer_id": "C008",
+      "recommendation_id": null,
+      "rm_id": "RM001",
+      "action_type": "IN_BRANCH_MEETING",
+      "notes": "Discussed upcoming fixed-deposit maturity options.",
+      "offer_presented": false,
+      "customer_response": "Will review renewal terms"
+    },
+    {
+      "id": "INT-C009-001",
+      "customer_id": "C009",
+      "recommendation_id": null,
+      "rm_id": "RM002",
+      "action_type": "OUTBOUND_CALL",
+      "notes": "Brief check-in on investment allocation preferences.",
+      "offer_presented": false,
+      "customer_response": "Interested in wealth discussion"
+    }
+  ]
+}

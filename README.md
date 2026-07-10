@@ -109,6 +109,35 @@ Key variables:
 
 Full list: [.env.example](./.env.example)
 
+## Synthetic Demo Data
+
+All customer names, emails, account numbers, balances, and events in RetainAI are **completely fictional**. The scenarios below are designed for local development and testing only — they **do not represent actual bank policies, real customers, or production decision rules**.
+
+Load or reset the synthetic dataset from the `backend/` directory:
+
+```bash
+cd backend
+uv run python ../scripts/reset_database.py
+uv run python ../scripts/reset_database.py --reset
+```
+
+### Fictional customer scenarios
+
+| ID | Profile | Key signals | Expected future outcome |
+|----|---------|-------------|-------------------------|
+| C001 | High-value priority salary customer since 2017 | External home-loan inquiry, 42% balance decline, large external transfer, excellent credit, zero DPD | Urgent retention |
+| C002 | Mass-affluent card-active customer | External credit-card inquiry, good credit score, low DPD, strong card spending | Card upgrade or annual-fee-waiver review |
+| C003 | Salary-dependent customer | Salary credit stopped, repeated transfers to another bank, declining balance, good credit | Immediate RM relationship call |
+| C004 | Distressed borrower | High churn signals, 60 DPD, weak credit | Service or repayment assistance; no new lending offer |
+| C005 | Long-tenure customer | Declining product usage, no strong external trigger | Relationship reactivation or monitoring |
+| C006 | Low-value stable customer | One low-severity external inquiry, otherwise stable transactions | Monitor or no action |
+| C007 | Frequent traveller | High forex spending, external travel-card inquiry | Travel-card recommendation |
+| C008 | Priority depositor | Large fixed deposit maturing soon, recent external transfer, high customer value | Fixed-deposit renewal retention action |
+| C009 | High-value investor | Increasing transfers to external investment platforms | Wealth-management referral subject to RM review |
+| C010 | Stable customer | No material risk signals | No action |
+
+Seed sources: `CORE_BANKING`, `CREDIT_BUREAU`, `TRANSACTION_ENGINE`, and `CRM` JSON files under `backend/app/seed/`.
+
 ## Running Tests
 
 ```bash

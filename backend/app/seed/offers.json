@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "source_system": "CORE_BANKING",
+    "last_updated": "2026-07-01T05:00:00+00:00"
+  },
+  "offers": [
+    {
+      "offer_id": "OFFER-HL-FEE",
+      "product_type": "HOME_LOAN",
+      "offer_name": "Home-loan processing-fee waiver",
+      "description": "Waive home-loan processing fee for eligible priority customers considering external home-loan inquiries.",
+      "minimum_credit_score": 750,
+      "maximum_dpd": 15,
+      "minimum_customer_value": 1000000.0,
+      "maximum_offer_cost": 25000.0,
+      "estimated_cost": 18000.0,
+      "expected_retention_uplift": 0.22,
+      "active": true,
+      "requires_rm_approval": true
+    },
+    {
+      "offer_id": "OFFER-HL-RATE",
+      "product_type": "HOME_LOAN",
+      "offer_name": "Home-loan rate review",
+      "description": "Conduct a relationship-based home-loan rate review for high-value customers.",
+      "minimum_credit_score": 720,
+      "maximum_dpd": 30,
+      "minimum_customer_value": 800000.0,
+      "maximum_offer_cost": 50000.0,
+      "estimated_cost": 35000.0,
+      "expected_retention_uplift": 0.18,
+      "active": true,
+      "requires_rm_approval": true
+    },
+    {
+      "offer_id": "OFFER-CC-FEE",
+      "product_type": "CREDIT_CARD",
+      "offer_name": "Credit-card annual-fee waiver",
+      "description": "Waive annual fee for 12 months on existing credit-card relationships.",
+      "minimum_credit_score": 700,
+      "maximum_dpd": 15,
+      "minimum_customer_value": 300000.0,
+      "maximum_offer_cost": 8000.0,
+      "estimated_cost": 5000.0,
+      "expected_retention_uplift": 0.15,
+      "active": true,
+      "requires_rm_approval": false
+    },
+    {
+      "offer_id": "OFFER-CC-UPGRADE",
+      "product_type": "CREDIT_CARD",
+      "offer_name": "Credit-card upgrade",
+      "description": "Upgrade eligible customers to a premium credit-card tier with enhanced rewards.",
+      "minimum_credit_score": 730,
+      "maximum_dpd": 10,
+      "minimum_customer_value": 400000.0,
+      "maximum_offer_cost": 12000.0,
+      "estimated_cost": 7500.0,
+      "expected_retention_uplift": 0.2,
+      "active": true,
+      "requires_rm_approval": true
+    },
+    {
+      "offer_id": "OFFER-TC-UPGRADE",
+      "product_type": "TRAVEL_CARD",
+      "offer_name": "Travel-card upgrade",
+      "description": "Offer a travel-focused credit card upgrade for customers with high forex spend.",
+      "minimum_credit_score": 710,
+      "maximum_dpd": 15,
+      "minimum_customer_value": 500000.0,
+      "maximum_offer_cost": 10000.0,
+      "estimated_cost": 6500.0,
+      "expected_retention_uplift": 0.19,
+      "active": true,
+      "requires_rm_approval": false
+    },
+    {
+      "offer_id": "OFFER-FD-RENEW",
+      "product_type": "FIXED_DEPOSIT",
+      "offer_name": "Fixed-deposit renewal incentive",
+      "description": "Provide a renewal rate incentive for maturing fixed deposits above INR 10 lakh.",
+      "minimum_credit_score": 680,
+      "maximum_dpd": 30,
+      "minimum_customer_value": 600000.0,
+      "maximum_offer_cost": 30000.0,
+      "estimated_cost": 22000.0,
+      "expected_retention_uplift": 0.25,
+      "active": true,
+      "requires_rm_approval": true
+    },
+    {
+      "offer_id": "OFFER-PRIORITY-REVIEW",
+      "product_type": "RELATIONSHIP",
+      "offer_name": "Priority relationship review",
+      "description": "Schedule a priority RM relationship review for at-risk high-value customers.",
+      "minimum_credit_score": 650,
+      "maximum_dpd": 30,
+      "minimum_customer_value": 500000.0,
+      "maximum_offer_cost": 5000.0,
+      "estimated_cost": 2500.0,
+      "expected_retention_uplift": 0.12,
+      "active": true,
+      "requires_rm_approval": false
+    },
+    {
+      "offer_id": "OFFER-REPAY-SUPPORT",
+      "product_type": "REPAYMENT",
+      "offer_name": "Repayment-support consultation",
+      "description": "Offer a structured repayment-support consultation without new lending.",
+      "minimum_credit_score": 500,
+      "maximum_dpd": 90,
+      "minimum_customer_value": 50000.0,
+      "maximum_offer_cost": 3000.0,
+      "estimated_cost": 1500.0,
+      "expected_retention_uplift": 0.1,
+      "active": true,
+      "requires_rm_approval": false
+    }
+  ]
+}

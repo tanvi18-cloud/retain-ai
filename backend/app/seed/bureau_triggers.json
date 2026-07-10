@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "source_system": "CREDIT_BUREAU",
+    "last_updated": "2026-07-01T07:00:00+00:00"
+  },
+  "bureau_triggers": [
+    {
+      "id": "BT-C001-HL",
+      "customer_id": "C001",
+      "product_type": "HOME_LOAN",
+      "trigger_type": "EXTERNAL_INQUIRY",
+      "institution_category": "PRIVATE_BANK",
+      "amount_band": "50L-1CR",
+      "severity": "HIGH",
+      "trigger_date": "2026-06-18",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    },
+    {
+      "id": "BT-C002-CC",
+      "customer_id": "C002",
+      "product_type": "CREDIT_CARD",
+      "trigger_type": "EXTERNAL_INQUIRY",
+      "institution_category": "NBFC",
+      "amount_band": "1L-3L",
+      "severity": "MEDIUM",
+      "trigger_date": "2026-06-22",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    },
+    {
+      "id": "BT-C004-PL",
+      "customer_id": "C004",
+      "product_type": "PERSONAL_LOAN",
+      "trigger_type": "DELINQUENCY_SIGNAL",
+      "institution_category": "INTERNAL",
+      "amount_band": "50K-1L",
+      "severity": "HIGH",
+      "trigger_date": "2026-06-10",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    },
+    {
+      "id": "BT-C006-CC",
+      "customer_id": "C006",
+      "product_type": "CREDIT_CARD",
+      "trigger_type": "EXTERNAL_INQUIRY",
+      "institution_category": "FINTECH",
+      "amount_band": "25K-50K",
+      "severity": "LOW",
+      "trigger_date": "2026-06-25",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    },
+    {
+      "id": "BT-C007-TC",
+      "customer_id": "C007",
+      "product_type": "TRAVEL_CARD",
+      "trigger_type": "EXTERNAL_INQUIRY",
+      "institution_category": "PRIVATE_BANK",
+      "amount_band": "1L-3L",
+      "severity": "MEDIUM",
+      "trigger_date": "2026-06-20",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    },
+    {
+      "id": "BT-C009-WM",
+      "customer_id": "C009",
+      "product_type": "WEALTH_MANAGEMENT",
+      "trigger_type": "EXTERNAL_INQUIRY",
+      "institution_category": "BROKER",
+      "amount_band": "10L-25L",
+      "severity": "MEDIUM",
+      "trigger_date": "2026-06-15",
+      "source": "CREDIT_BUREAU",
+      "processed": false
+    }
+  ]
+}

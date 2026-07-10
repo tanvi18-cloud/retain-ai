@@ -1,0 +1,260 @@
+{
+  "metadata": {
+    "source_system": "CORE_BANKING",
+    "last_updated": "2026-07-01T06:00:00+00:00"
+  },
+  "customers": [
+    {
+      "customer_id": "C001",
+      "full_name": "Ananya Deshmukh",
+      "segment": "PRIORITY",
+      "relationship_start_date": "2017-03-15",
+      "assigned_rm_id": "RM001",
+      "assigned_rm_name": "Priya Menon",
+      "assigned_rm_email": "priya.menon@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "EMAIL",
+      "estimated_annual_value": 1850000.0
+    },
+    {
+      "customer_id": "C002",
+      "full_name": "Rohit Malhotra",
+      "segment": "MASS_AFFLUENT",
+      "relationship_start_date": "2019-08-22",
+      "assigned_rm_id": "RM001",
+      "assigned_rm_name": "Priya Menon",
+      "assigned_rm_email": "priya.menon@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "PHONE",
+      "estimated_annual_value": 620000.0
+    },
+    {
+      "customer_id": "C003",
+      "full_name": "Kavita Iyer",
+      "segment": "MASS_AFFLUENT",
+      "relationship_start_date": "2018-11-05",
+      "assigned_rm_id": "RM002",
+      "assigned_rm_name": "Arjun Nair",
+      "assigned_rm_email": "arjun.nair@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "PHONE",
+      "estimated_annual_value": 780000.0
+    },
+    {
+      "customer_id": "C004",
+      "full_name": "Sanjay Kapoor",
+      "segment": "STANDARD",
+      "relationship_start_date": "2016-01-20",
+      "assigned_rm_id": "RM002",
+      "assigned_rm_name": "Arjun Nair",
+      "assigned_rm_email": "arjun.nair@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "SMS",
+      "estimated_annual_value": 210000.0
+    },
+    {
+      "customer_id": "C005",
+      "full_name": "Meera Pillai",
+      "segment": "MASS_AFFLUENT",
+      "relationship_start_date": "2012-06-10",
+      "assigned_rm_id": "RM001",
+      "assigned_rm_name": "Priya Menon",
+      "assigned_rm_email": "priya.menon@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "EMAIL",
+      "estimated_annual_value": 540000.0
+    },
+    {
+      "customer_id": "C006",
+      "full_name": "Vikram Bose",
+      "segment": "STANDARD",
+      "relationship_start_date": "2021-04-18",
+      "assigned_rm_id": "RM002",
+      "assigned_rm_name": "Arjun Nair",
+      "assigned_rm_email": "arjun.nair@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "SMS",
+      "estimated_annual_value": 95000.0
+    },
+    {
+      "customer_id": "C007",
+      "full_name": "Divya Chawla",
+      "segment": "MASS_AFFLUENT",
+      "relationship_start_date": "2020-02-14",
+      "assigned_rm_id": "RM001",
+      "assigned_rm_name": "Priya Menon",
+      "assigned_rm_email": "priya.menon@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "EMAIL",
+      "estimated_annual_value": 890000.0
+    },
+    {
+      "customer_id": "C008",
+      "full_name": "Harish Reddy",
+      "segment": "PRIORITY",
+      "relationship_start_date": "2015-09-30",
+      "assigned_rm_id": "RM001",
+      "assigned_rm_name": "Priya Menon",
+      "assigned_rm_email": "priya.menon@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "PHONE",
+      "estimated_annual_value": 1420000.0
+    },
+    {
+      "customer_id": "C009",
+      "full_name": "Nisha Agarwal",
+      "segment": "PRIORITY",
+      "relationship_start_date": "2014-07-12",
+      "assigned_rm_id": "RM002",
+      "assigned_rm_name": "Arjun Nair",
+      "assigned_rm_email": "arjun.nair@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "EMAIL",
+      "estimated_annual_value": 1680000.0
+    },
+    {
+      "customer_id": "C010",
+      "full_name": "Karan Mehta",
+      "segment": "STANDARD",
+      "relationship_start_date": "2019-12-01",
+      "assigned_rm_id": "RM002",
+      "assigned_rm_name": "Arjun Nair",
+      "assigned_rm_email": "arjun.nair@retainai-demo.local",
+      "communication_consent": true,
+      "preferred_channel": "EMAIL",
+      "estimated_annual_value": 180000.0
+    }
+  ],
+  "accounts": [
+    {
+      "id": "ACC-C001-SAL",
+      "customer_id": "C001",
+      "account_type": "SALARY",
+      "current_balance": 348000.0,
+      "average_balance_90d": 598000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C001-SAV",
+      "customer_id": "C001",
+      "account_type": "SAVINGS",
+      "current_balance": 1250000.0,
+      "average_balance_90d": 980000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C002-SAL",
+      "customer_id": "C002",
+      "account_type": "SALARY",
+      "current_balance": 185000.0,
+      "average_balance_90d": 172000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C002-CC",
+      "customer_id": "C002",
+      "account_type": "CREDIT_CARD",
+      "current_balance": -42000.0,
+      "average_balance_90d": -38000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C003-SAL",
+      "customer_id": "C003",
+      "account_type": "SALARY",
+      "current_balance": 62000.0,
+      "average_balance_90d": 148000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C004-SAL",
+      "customer_id": "C004",
+      "account_type": "SALARY",
+      "current_balance": 28000.0,
+      "average_balance_90d": 35000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C005-SAV",
+      "customer_id": "C005",
+      "account_type": "SAVINGS",
+      "current_balance": 96000.0,
+      "average_balance_90d": 118000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C006-SAL",
+      "customer_id": "C006",
+      "account_type": "SALARY",
+      "current_balance": 42000.0,
+      "average_balance_90d": 41000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C007-SAL",
+      "customer_id": "C007",
+      "account_type": "SALARY",
+      "current_balance": 210000.0,
+      "average_balance_90d": 198000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C008-SAV",
+      "customer_id": "C008",
+      "account_type": "SAVINGS",
+      "current_balance": 320000.0,
+      "average_balance_90d": 305000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C008-FD",
+      "customer_id": "C008",
+      "account_type": "FIXED_DEPOSIT",
+      "current_balance": 2500000.0,
+      "average_balance_90d": 2500000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": "2026-08-15"
+    },
+    {
+      "id": "ACC-C009-SAV",
+      "customer_id": "C009",
+      "account_type": "SAVINGS",
+      "current_balance": 890000.0,
+      "average_balance_90d": 920000.0,
+      "salary_account": false,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    },
+    {
+      "id": "ACC-C010-SAL",
+      "customer_id": "C010",
+      "account_type": "SALARY",
+      "current_balance": 78000.0,
+      "average_balance_90d": 76000.0,
+      "salary_account": true,
+      "status": "ACTIVE",
+      "fixed_deposit_maturity_date": null
+    }
+  ]
+}
