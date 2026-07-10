@@ -4,6 +4,8 @@ import { MemoryRouter, Route, Routes, type MemoryRouterProps } from 'react-route
 import { Toaster } from 'sonner'
 import type { ReactElement, ReactNode } from 'react'
 
+import { AlertsWebSocketProvider } from '../hooks/useAlertsWebSocket'
+
 function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -24,17 +26,19 @@ function Providers({ children, route = '/', routerProps, withRoutes }: Providers
   const client = createTestQueryClient()
   return (
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[route]} {...routerProps}>
-        {withRoutes ? (
-          <Routes>
-            <Route path="/customers/:customerId" element={children} />
-            <Route path="*" element={children} />
-          </Routes>
-        ) : (
-          children
-        )}
-        <Toaster />
-      </MemoryRouter>
+      <AlertsWebSocketProvider>
+        <MemoryRouter initialEntries={[route]} {...routerProps}>
+          {withRoutes ? (
+            <Routes>
+              <Route path="/customers/:customerId" element={children} />
+              <Route path="*" element={children} />
+            </Routes>
+          ) : (
+            children
+          )}
+          <Toaster />
+        </MemoryRouter>
+      </AlertsWebSocketProvider>
     </QueryClientProvider>
   )
 }

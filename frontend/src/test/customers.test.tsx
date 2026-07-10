@@ -30,7 +30,7 @@ describe('CustomersPage', () => {
 
   it('links to customer 360', async () => {
     renderWithProviders(<CustomersPage />)
-    const link = await screen.findByRole('link', { name: /Customer 360/i })
+    const link = (await screen.findAllByRole('link', { name: /Customer 360/i }))[0]
     expect(link).toHaveAttribute('href', '/customers/C001')
   })
 })

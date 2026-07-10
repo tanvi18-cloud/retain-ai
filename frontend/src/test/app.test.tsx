@@ -17,13 +17,14 @@ describe('Application shell', () => {
   it('renders shell and portfolio navigation', async () => {
     renderWithProviders(<App />, { route: '/' })
     expect(await screen.findByRole('heading', { level: 2, name: 'Customer Retention Command Center' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Customers/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /^Customers$/i }).length).toBeGreaterThan(0)
   })
 
   it('navigates to customers page', async () => {
     const user = userEvent.setup()
     renderWithProviders(<App />, { route: '/' })
-    await user.click(screen.getByRole('link', { name: /Customers/i }))
+    const customerLinks = screen.getAllByRole('link', { name: /^Customers$/i })
+    await user.click(customerLinks[0])
     expect(await screen.findByRole('heading', { level: 2, name: 'Customer Directory' })).toBeInTheDocument()
   })
 

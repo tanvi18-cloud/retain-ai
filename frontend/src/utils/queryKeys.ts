@@ -21,5 +21,21 @@ export const queryKeys = {
   },
   alerts: {
     list: (params: Record<string, unknown>) => ['alerts', 'list', params] as const,
+    detail: (id: string) => ['alerts', 'detail', id] as const,
+    unacknowledgedCount: ['alerts', 'unacknowledged-count'] as const,
+  },
+  chat: {
+    conversations: (params: Record<string, unknown>) =>
+      ['chat', 'conversations', params] as const,
+    conversation: (id: string) => ['chat', 'conversation', id] as const,
+  },
+  events: {
+    list: (params: Record<string, unknown>) => ['events', 'list', params] as const,
+    detail: (id: string) => ['events', 'detail', id] as const,
+  },
+  system: {
+    llm: ['system', 'llm'] as const,
+    queue: ['system', 'queue'] as const,
+    notification: ['system', 'notification'] as const,
   },
 }

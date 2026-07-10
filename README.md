@@ -94,9 +94,16 @@ The dev server runs at http://localhost:5173.
 | Variable | Purpose |
 |----------|---------|
 | `VITE_API_BASE_URL` | Backend API base URL (default `http://127.0.0.1:8001/api/v1`) |
+| `VITE_WS_BASE_URL` | WebSocket alerts endpoint (optional; derived from API URL when absent) |
 | `VITE_APP_NAME` | Application name shown in the shell |
 | `VITE_APP_VERSION` | Version label |
 | `VITE_USE_MOCK_DATA` | Reserved flag for future mock mode (`false` uses live API) |
+| `VITE_RM_ID` | RM identifier sent with chat and acknowledgement requests |
+| `VITE_RM_NAME` | RM display name in the shell |
+| `VITE_ENABLE_SIMULATOR` | Show Event Simulator navigation (`true` by default) |
+| `VITE_ENABLE_SYSTEM_PAGE` | Show System Status navigation (`true` by default) |
+
+When `VITE_WS_BASE_URL` is not set, the client derives `ws://<api-host>/ws/alerts` (or `wss://` for HTTPS APIs).
 
 ### Running with backend on port 8001
 
@@ -118,10 +125,47 @@ npm run dev
 | `/` | Portfolio command center (KPIs, charts, priority table) |
 | `/customers` | Customer directory with search and filters |
 | `/customers/:customerId` | Customer 360, analysis, recommendations, RM actions |
-| `/alerts` | Placeholder (Prompt 13) |
-| `/copilot` | Placeholder (Prompt 13) |
-| `/simulator` | Placeholder (Prompt 13) |
-| `/system` | Placeholder (Prompt 13) |
+| `/alerts` | Retention alert center with filters, acknowledgement, and live WebSocket toasts |
+| `/chat` | RM Copilot chat (conversation history, evidence, suggested questions) |
+| `/copilot` | Redirects to `/chat` |
+| `/simulator` | Synthetic event simulator for demo scenarios |
+| `/system` | API, queue, LLM, notification, and WebSocket diagnostics |
+
+### Live alerts (WebSocket)
+
+The shell connects to `VITE_WS_BASE_URL` (or a derived URL) on load. New `RETENTION_ALERT` messages:
+
+- Invalidate alert and portfolio queries
+- Show a Sonner toast with severity, customer, priority, and optional benefit
+- Suppress duplicate toasts by alert ID and skip historical replays after reconnect
+
+Top navigation shows API/WebSocket status and an unacknowledged alert count linking to `/alerts`.
+
+### RM Copilot (`/chat`)
+
+- Portfolio-wide or customer-scoped questions (`C001`–`C010`)
+- Conversation sidebar, evidence drawer, warnings, and MOCK/QWEN mode badge
+- Suggested questions for portfolio view, customer context, and C004 lending-restriction scenarios
+- Does not render untrusted HTML or hidden model reasoning
+
+Example questions:
+
+- Who should I call today?
+- Why is this customer high risk?
+- Which offers are eligible?
+- How much revenue is currently at risk?
+
+### Event simulator (`/simulator`)
+
+Synthetic demonstration tool — events update fictional customer data only. Supports all backend event types, idempotent submission, status polling, retry on failure, and links to customer/recommendation views when complete.
+
+### System status (`/system`)
+
+Operational diagnostics without secrets: API health, LLM mode (MOCK vs QWEN), queue metrics, SMTP host/port, WebSocket client count, and development-only WebSocket diagnostics.
+
+### Mock vs Qwen mode
+
+The chat UI and system page surface backend LLM mode. When Qwen is unavailable the chat API returns `503` and the UI shows a safe error. Deterministic scoring and eligibility are unchanged in either mode.
 
 ### Core dashboard features
 
@@ -131,12 +175,15 @@ npm run dev
 - Priority customer table with URL-driven filters, sort, and pagination
 - Customer 360 with rules-only and full analysis (polling)
 - Recommendation panel and RM workflow actions
-- API connectivity indicator via health check
+- API and WebSocket connectivity indicators
+- Route-based code splitting for heavy pages (Recharts isolated in its own chunk)
 - INR and date formatting utilities
 
 ### Synthetic data disclaimer
 
 All customer, account, credit, and transaction data shown in the frontend is **synthetic** and intended for local development and RM workflow demonstration only. It must not be used for production credit or product decisions.
+
+Recommended offers, expected revenue, and eligibility outputs are **indicative RM discussion options** — not product approval or guaranteed financial outcomes.
 
 ### Screenshots
 

@@ -7,6 +7,18 @@ import type { RecommendationDetail } from '../types/recommendation'
 import type { HealthResponse } from '../types/api'
 import type { RulesOnlyAnalysisResponse } from '../types/analysis'
 import type { AnalysisExecutionDetail } from '../types/analysis'
+import type { AlertDetail, AlertSummary } from '../types/alert'
+import type {
+  ChatResponse,
+  ConversationDetail,
+  ConversationSummary,
+} from '../types/chat'
+import type { IncomingEventDetail, IncomingEventResponse } from '../types/event'
+import type {
+  LLMStatus,
+  NotificationSystemStatus,
+  QueueSystemStatus,
+} from '../types/system'
 
 export const mockPortfolioSummary: PortfolioSummary = {
   total_customers: 10,
@@ -70,6 +82,14 @@ export const mockCustomers: CustomerSummary[] = [
     segment: 'PRIORITY',
     assigned_rm_name: 'RM User',
     estimated_annual_value: 450000,
+    preferred_channel: 'PHONE',
+  },
+  {
+    customer_id: 'C004',
+    full_name: 'Deepak Nair',
+    segment: 'MASS_AFFLUENT',
+    assigned_rm_name: 'RM User',
+    estimated_annual_value: 280000,
     preferred_channel: 'PHONE',
   },
 ]
@@ -315,4 +335,216 @@ export const mockExecutionFailed: AnalysisExecutionDetail = {
   ...mockExecutionQueued,
   status: 'FAILED',
   safe_error_message: 'Analysis could not be completed safely.',
+}
+
+export const mockAlerts: AlertSummary[] = [
+  {
+    alert_id: 'ALT-001',
+    customer_id: 'C001',
+    event_id: 'EVT-001',
+    recommendation_id: 'REC-001',
+    alert_type: 'AGENT_RECOMMENDATION',
+    severity: 'HIGH',
+    title: 'High churn risk — competitor transfer',
+    priority_score: 91,
+    acknowledged: false,
+    notification_status: 'SENT',
+    created_at: '2026-07-08T10:00:00Z',
+  },
+  {
+    alert_id: 'ALT-002',
+    customer_id: 'C004',
+    event_id: 'EVT-002',
+    recommendation_id: 'REC-002',
+    alert_type: 'AGENT_RECOMMENDATION',
+    severity: 'CRITICAL',
+    title: 'DPD escalation — repayment support needed',
+    priority_score: 88,
+    acknowledged: true,
+    notification_status: 'SENT',
+    created_at: '2026-07-08T09:30:00Z',
+  },
+]
+
+export const mockAlertDetail: AlertDetail = {
+  ...mockAlerts[0],
+  message: 'Customer shows elevated churn indicators requiring RM review.',
+  assigned_rm_id: 'RM-01',
+  assigned_rm_email: 'rm01@bank.test',
+  recommended_action: 'Contact within 24 hours',
+  recommended_offer_id: 'OFF-001',
+  acknowledged_at: null,
+  acknowledged_by: null,
+}
+
+export const mockRetentionAlertWs = {
+  type: 'RETENTION_ALERT' as const,
+  alert_id: 'ALT-NEW',
+  event_id: 'EVT-NEW',
+  recommendation_id: 'REC-001',
+  customer_id: 'C001',
+  alert_type: 'AGENT_RECOMMENDATION' as const,
+  severity: 'HIGH' as const,
+  title: 'Live retention alert',
+  priority_score: 85,
+  recommended_action: 'Schedule retention call',
+  recommended_offer: 'Relationship Saver Package',
+  expected_net_benefit: 85000,
+  created_at: '2026-07-08T11:00:00Z',
+}
+
+export const mockConversationSummary: ConversationSummary = {
+  conversation_id: 'CONV-001',
+  title: 'Portfolio priorities',
+  active_customer_id: null,
+  last_message_preview: 'Who should I call today?',
+  message_count: 2,
+  created_at: '2026-07-08T08:00:00Z',
+  updated_at: '2026-07-08T08:05:00Z',
+  status: 'ACTIVE',
+}
+
+export const mockConversationDetail: ConversationDetail = {
+  conversation_id: 'CONV-001',
+  rm_id: 'RM-01',
+  title: 'Portfolio priorities',
+  active_customer_id: null,
+  status: 'ACTIVE',
+  created_at: '2026-07-08T08:00:00Z',
+  updated_at: '2026-07-08T08:05:00Z',
+  expires_at: null,
+  messages: [
+    {
+      message_id: 'MSG-001',
+      role: 'USER',
+      content: 'Who should I call today?',
+      customer_ids: [],
+      used_tools: [],
+      evidence: [],
+      warnings: [],
+      created_at: '2026-07-08T08:00:00Z',
+    },
+    {
+      message_id: 'MSG-002',
+      role: 'ASSISTANT',
+      content: 'Start with C001 — high priority score and unacknowledged alerts.',
+      customer_ids: ['C001'],
+      used_tools: ['portfolio_summary'],
+      evidence: [
+        {
+          source_system: 'RetainAI',
+          source_type: 'portfolio',
+          reference_id: null,
+          customer_id: 'C001',
+          field: 'priority_score',
+          value_summary: '91',
+          timestamp: '2026-07-08T08:05:00Z',
+        },
+      ],
+      warnings: ['Synthetic data — not for production decisions.'],
+      created_at: '2026-07-08T08:05:00Z',
+    },
+  ],
+}
+
+export const mockChatResponse: ChatResponse = {
+  conversation_id: 'CONV-001',
+  message_id: 'MSG-003',
+  answer: 'Start with C001 — high priority score and unacknowledged alerts.',
+  intent: 'PRIORITY_CUSTOMER_LIST',
+  customer_ids: ['C001'],
+  used_tools: ['portfolio_summary'],
+  evidence: mockConversationDetail.messages[1].evidence,
+  warnings: ['Synthetic data — not for production decisions.'],
+  suggested_questions: ['Why is this customer high risk?'],
+  generated_at: '2026-07-08T08:05:00Z',
+  mode: 'MOCK',
+}
+
+export const mockEventResponse: IncomingEventResponse = {
+  event_id: 'EVT-SIM-001',
+  customer_id: 'C001',
+  event_type: 'EXTERNAL_HOME_LOAN_INQUIRY',
+  source_system: 'BUREAU_MONITOR',
+  status: 'QUEUED',
+  execution_id: null,
+  created_at: '2026-07-08T10:00:00Z',
+  queued_at: '2026-07-08T10:00:01Z',
+  processing_started_at: null,
+  processed_at: null,
+  error_message: null,
+  duplicate: false,
+  analysis_summary: null,
+}
+
+export const mockEventDetailQueued: IncomingEventDetail = {
+  event_id: 'EVT-SIM-001',
+  customer_id: 'C001',
+  event_type: 'EXTERNAL_HOME_LOAN_INQUIRY',
+  source_system: 'BUREAU_MONITOR',
+  payload_json: { severity: 'HIGH' },
+  idempotency_key: 'sim-1',
+  execution_id: null,
+  analysis_result_json: null,
+  status: 'QUEUED',
+  error_message: null,
+  retry_count: 0,
+  notifications_enabled: true,
+  created_at: '2026-07-08T10:00:00Z',
+  queued_at: '2026-07-08T10:00:01Z',
+  processing_started_at: null,
+  processed_at: null,
+}
+
+export const mockEventDetailCompleted: IncomingEventDetail = {
+  ...mockEventDetailQueued,
+  status: 'COMPLETED',
+  execution_id: 'EXE-NEW',
+  processing_started_at: '2026-07-08T10:00:02Z',
+  processed_at: '2026-07-08T10:00:05Z',
+  analysis_result_json: { recommendation_id: 'REC-001', priority_score: 91 },
+}
+
+export const mockEventDetailFailed: IncomingEventDetail = {
+  ...mockEventDetailQueued,
+  status: 'FAILED',
+  error_message: 'Event processing failed safely.',
+  processing_started_at: '2026-07-08T10:00:02Z',
+  processed_at: '2026-07-08T10:00:05Z',
+}
+
+export const mockLLMStatus: LLMStatus = {
+  mode: 'MOCK',
+  configured_model: 'mock-rm-copilot',
+  endpoint_host: 'localhost',
+  available: true,
+  last_checked_at: '2026-07-08T10:00:00Z',
+  error_message: null,
+  crewai_version: '0.80.0',
+}
+
+export const mockLLMStatusUnavailable: LLMStatus = {
+  ...mockLLMStatus,
+  mode: 'QWEN',
+  configured_model: 'qwen2.5-7b',
+  available: false,
+  error_message: 'Qwen endpoint unreachable',
+}
+
+export const mockQueueStatus: QueueSystemStatus = {
+  worker_count: 2,
+  queue_size: 0,
+  processing_count: 0,
+  completed_count_since_startup: 12,
+  failed_count_since_startup: 1,
+  started_at: '2026-07-08T08:00:00Z',
+}
+
+export const mockNotificationStatus: NotificationSystemStatus = {
+  email_notifications_enabled: true,
+  smtp_host: 'localhost',
+  smtp_port: 1025,
+  smtp_configured: true,
+  websocket_connections: 1,
+  alert_priority_threshold: 70,
 }

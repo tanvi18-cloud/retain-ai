@@ -23,9 +23,14 @@ npm install
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `VITE_API_BASE_URL` | `http://127.0.0.1:8001/api/v1` | Backend API base URL |
+| `VITE_WS_BASE_URL` | _(derived from API URL)_ | WebSocket alerts endpoint |
 | `VITE_APP_NAME` | `RetainAI` | Shell title |
 | `VITE_APP_VERSION` | `0.1.0` | Version label |
 | `VITE_USE_MOCK_DATA` | `false` | Reserved for future mock mode |
+| `VITE_RM_ID` | `RM-01` | RM identifier for chat/acknowledgements |
+| `VITE_RM_NAME` | `RM User` | RM display name |
+| `VITE_ENABLE_SIMULATOR` | `true` | Show event simulator nav |
+| `VITE_ENABLE_SYSTEM_PAGE` | `true` | Show system status nav |
 
 ## Commands
 
