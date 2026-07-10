@@ -5,9 +5,14 @@ from app.models.alert import Alert
 from app.models.analysis_execution import AnalysisExecution
 from app.models.audit_log import AuditLog
 from app.models.bureau_trigger import BureauTrigger
+from app.models.chat_conversation import ChatConversation
+from app.models.chat_message import ChatMessage
 from app.models.credit_profile import CreditProfile
 from app.models.customer import Customer
 from app.models.enums import (
+    ChatConversationStatus,
+    ChatIntent,
+    ChatMessageRole,
     CustomerSegment,
     IncomingEventStatus,
     PreferredChannel,
@@ -27,6 +32,11 @@ __all__ = [
     "AnalysisExecution",
     "AuditLog",
     "BureauTrigger",
+    "ChatConversation",
+    "ChatMessage",
+    "ChatConversationStatus",
+    "ChatIntent",
+    "ChatMessageRole",
     "CreditProfile",
     "Customer",
     "CustomerSegment",

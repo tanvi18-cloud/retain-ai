@@ -80,6 +80,13 @@ class Settings(BaseSettings):
     value_priority_weight: float = Field(default=0.45, alias="VALUE_PRIORITY_WEIGHT")
     decision_monitor_threshold: int = Field(default=30, alias="DECISION_MONITOR_THRESHOLD")
 
+    chat_history_enabled: bool = Field(default=True, alias="CHAT_HISTORY_ENABLED")
+    chat_max_history_messages: int = Field(default=12, alias="CHAT_MAX_HISTORY_MESSAGES")
+    chat_max_message_length: int = Field(default=2000, alias="CHAT_MAX_MESSAGE_LENGTH")
+    chat_max_tool_calls: int = Field(default=6, alias="CHAT_MAX_TOOL_CALLS")
+    chat_timeout_seconds: int = Field(default=45, alias="CHAT_TIMEOUT_SECONDS")
+    chat_conversation_ttl_hours: int = Field(default=24, alias="CHAT_CONVERSATION_TTL_HOURS")
+
     @property
     def api_version(self) -> str:
         """Application version exposed via health and OpenAPI metadata."""

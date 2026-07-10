@@ -200,3 +200,75 @@ class AnalysisExecutionNotFoundError(DomainError):
             details=details,
             status_code=404,
         )
+
+
+class ChatConversationNotFoundError(DomainError):
+    """Raised when a chat conversation is not found."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="CHAT_CONVERSATION_NOT_FOUND",
+            message=message,
+            details=details,
+            status_code=404,
+        )
+
+
+class ChatConversationClosedError(DomainError):
+    """Raised when posting to a closed chat conversation."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="CHAT_CONVERSATION_CLOSED",
+            message=message,
+            details=details,
+            status_code=409,
+        )
+
+
+class ChatAccessDeniedError(DomainError):
+    """Raised when an RM cannot access a conversation."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="CHAT_ACCESS_DENIED",
+            message=message,
+            details=details,
+            status_code=403,
+        )
+
+
+class InvalidChatRequestError(DomainError):
+    """Raised when a chat request fails validation."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="INVALID_CHAT_REQUEST",
+            message=message,
+            details=details,
+            status_code=400,
+        )
+
+
+class ChatValidationFailedError(DomainError):
+    """Raised when chat output fails safety validation."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="CHAT_VALIDATION_FAILED",
+            message=message,
+            details=details,
+            status_code=422,
+        )
+
+
+class ChatServiceUnavailableError(DomainError):
+    """Raised when Qwen chat is unavailable in real mode."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="CHAT_SERVICE_UNAVAILABLE",
+            message=message,
+            details=details,
+            status_code=503,
+        )

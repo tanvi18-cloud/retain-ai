@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.alerts import router as alerts_router
 from app.api.analysis import router as analysis_router
+from app.api.chat import router as chat_router
 from app.api.customers import router as customers_router
 from app.api.events import router as events_router
 from app.api.health import build_health_response
@@ -16,6 +17,7 @@ from app.core.config import Settings, get_settings
 from app.schemas.health import HealthResponse
 
 api_router = APIRouter()
+api_router.include_router(chat_router)
 api_router.include_router(customers_router)
 api_router.include_router(analysis_router)
 api_router.include_router(portfolio_router)

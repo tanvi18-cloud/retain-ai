@@ -116,7 +116,13 @@ Key variables:
 | `AGENT_MAX_ITERATIONS` | Maximum CrewAI agent iterations (default 4) |
 | `CHURN_PRIORITY_WEIGHT` | Weight for churn score in priority formula (default 0.55) |
 | `VALUE_PRIORITY_WEIGHT` | Weight for value score in priority formula (default 0.45) |
-| `DECISION_MONITOR_THRESHOLD` | Minimum priority score for MONITOR decision (default 30) |
+| `SEND_EMAIL_MIN_PRIORITY` | Minimum priority for agent alert email (default 70) |
+| `CHAT_HISTORY_ENABLED` | Persist RM chat messages (default true) |
+| `CHAT_MAX_HISTORY_MESSAGES` | Max prior messages in context (default 12) |
+| `CHAT_MAX_MESSAGE_LENGTH` | Max user message length (default 2000) |
+| `CHAT_MAX_TOOL_CALLS` | Max safe tools per chat turn (default 6) |
+| `CHAT_TIMEOUT_SECONDS` | Chat request timeout (default 45) |
+| `CHAT_CONVERSATION_TTL_HOURS` | Conversation expiry (default 24) |
 
 Full list: [.env.example](./.env.example)
 
@@ -606,6 +612,110 @@ All agent responses validate against Pydantic schemas in `app/schemas/agent_outp
 Shared policy in `app/core/agent_policy.py` requires agents to use tool data only, never invent financial values, and never promise approval or guaranteed revenue.
 
 CrewAI Crew/Flow orchestration is implemented in `app/crews/retention_crew.py` and `app/flows/retention_flow.py`. Individual agents remain callable via `run_signal_investigator`, `run_retention_decision`, `run_offer_strategy`, and `run_rm_copilot`.
+
+## RM Copilot Chat
+
+The RM Copilot is a **decision-support assistant for Relationship Managers only**. It helps RMs understand portfolio priorities, customer risk, eligibility, and talking points — without contacting customers, approving products, or modifying scores or recommendations.
+
+### Supported questions
+
+- Who should I call today?
+- Why is C001 urgent?
+- Why is C004 not eligible for a loan?
+- Which customers have recent home-loan inquiries?
+- What offer is recommended for C008?
+- Compare C001 and C008.
+- How much revenue is currently at risk?
+- Draft talking points for C003.
+- Show high-value, high-risk customers.
+- What is C001's recommendation status?
+- Which customers have stale data?
+- Why is DPD important for C004?
+
+### Chat architecture
+
+```text
+POST /api/v1/chat
+        │
+        ▼
+  Validate request + resolve conversation context
+        │
+        ▼
+  Deterministic intent detection
+        │
+        ├─ MOCK_LLM_MODE=true ──► Safe read-only tools ──► Deterministic answer
+        │
+        └─ MOCK_LLM_MODE=false ─► Safe tools ──► Qwen structured output
+        │
+        ▼
+  Safety validation (approval language, evidence, account numbers)
+        │
+        ▼
+  Persist messages (when CHAT_HISTORY_ENABLED=true)
+        │
+        ▼
+  ChatResponse with evidence + suggested follow-up questions
+```
+
+### Safe tool design
+
+Twelve read-only tools in `app/tools/chat_tools.py`:
+
+- Customer summary, risk explanation, eligibility, recommendation
+- Priority customer list, portfolio summary, trigger search
+- Customer comparison (2–5 IDs), data freshness, stale-data search
+- RM talking points, recommendation status
+
+Restrictions: no SQL, no writes, no customer contact, no score changes, no raw transactions or account numbers.
+
+### Mock and Qwen behavior
+
+| Mode | Behavior |
+|------|----------|
+| `MOCK_LLM_MODE=true` (default) | Deterministic intent + tool calls + templated answers; no network |
+| `MOCK_LLM_MODE=false` | Qwen generates structured output from pre-fetched tool data; returns 503 if unavailable |
+
+### Conversation context
+
+- Limited history (`CHAT_MAX_HISTORY_MESSAGES`, default 12)
+- Active customer tracking for follow-up questions
+- Ambiguity detection when multiple customers discussed
+- Conversations expire after `CHAT_CONVERSATION_TTL_HOURS` (default 24)
+
+### Chat API examples
+
+```bash
+# Why is C001 urgent?
+curl -X POST http://localhost:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Why is C001 urgent?","rm_id":"RM-01","customer_id":"C001"}'
+
+# Who should I call today?
+curl -X POST http://localhost:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Who should I call today?","rm_id":"RM-01"}'
+
+# Compare two customers
+curl -X POST http://localhost:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Compare C001 and C008.","rm_id":"RM-01"}'
+
+# List conversations
+curl "http://localhost:8000/api/v1/chat/conversations?rm_id=RM-01"
+
+# Close a conversation
+curl -X POST http://localhost:8000/api/v1/chat/conversations/{conversation_id}/close \
+  -H "Content-Type: application/json" \
+  -d '{"rm_id":"RM-01"}'
+```
+
+### Limitations and disclaimers
+
+- Chat does not contact customers or approve products.
+- Eligibility indicates an RM discussion option, not final credit or product approval.
+- Financial values are estimates, not guaranteed revenue.
+- No vector database; context is limited to recent conversation history.
+- Unsupported requests (SQL, customer contact, arbitrary actions) return a safe refusal.
 
 ## Running Tests
 
