@@ -45,6 +45,15 @@ class Settings(BaseSettings):
     alert_priority_threshold: int = Field(default=70, alias="ALERT_PRIORITY_THRESHOLD")
     review_priority_threshold: int = Field(default=50, alias="REVIEW_PRIORITY_THRESHOLD")
     queue_worker_count: int = Field(default=1, alias="QUEUE_WORKER_COUNT")
+    event_max_retries: int = Field(default=2, alias="EVENT_MAX_RETRIES")
+    event_shutdown_timeout_seconds: int = Field(
+        default=10,
+        alias="EVENT_SHUTDOWN_TIMEOUT_SECONDS",
+    )
+    email_notifications_enabled: bool = Field(default=True, alias="EMAIL_NOTIFICATIONS_ENABLED")
+    smtp_use_tls: bool = Field(default=False, alias="SMTP_USE_TLS")
+    smtp_timeout_seconds: int = Field(default=10, alias="SMTP_TIMEOUT_SECONDS")
+    websocket_heartbeat_seconds: int = Field(default=30, alias="WEBSOCKET_HEARTBEAT_SECONDS")
 
     core_banking_stale_hours: int = Field(default=72, alias="CORE_BANKING_STALE_HOURS")
     credit_profile_stale_hours: int = Field(default=168, alias="CREDIT_PROFILE_STALE_HOURS")

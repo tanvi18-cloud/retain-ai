@@ -104,3 +104,27 @@ class UnsupportedFilterError(DomainError):
             details=details,
             status_code=400,
         )
+
+
+class EventRetryNotAllowedError(DomainError):
+    """Raised when an event cannot be retried."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="EVENT_RETRY_NOT_ALLOWED",
+            message=message,
+            details=details,
+            status_code=400,
+        )
+
+
+class UnsupportedEventTypeError(DomainError):
+    """Raised when an event type is not supported."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="UNSUPPORTED_EVENT_TYPE",
+            message=message,
+            details=details,
+            status_code=422,
+        )

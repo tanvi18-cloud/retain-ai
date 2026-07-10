@@ -105,7 +105,12 @@ Key variables:
 | `FRONTEND_ORIGIN` | CORS origin for the Vite dev server |
 | `QWEN_*` | OpenAI-compatible Qwen endpoint settings |
 | `SMTP_*` | Development email (e.g. Mailhog on port 1025) |
-| `ALERT_PRIORITY_THRESHOLD` | Score threshold for high-priority alerts |
+| `ALERT_PRIORITY_THRESHOLD` | Score threshold for high-priority alerts and email |
+| `REVIEW_PRIORITY_THRESHOLD` | Minimum score for MEDIUM preview alerts (default 50) |
+| `QUEUE_WORKER_COUNT` | Background event worker count (default 1) |
+| `EVENT_MAX_RETRIES` | Maximum retries for failed events |
+| `EMAIL_NOTIFICATIONS_ENABLED` | Enable SMTP alert emails |
+| `WEBSOCKET_HEARTBEAT_SECONDS` | WebSocket heartbeat interval |
 | `CHURN_PRIORITY_WEIGHT` | Weight for churn score in priority formula (default 0.55) |
 | `VALUE_PRIORITY_WEIGHT` | Weight for value score in priority formula (default 0.45) |
 | `DECISION_MONITOR_THRESHOLD` | Minimum priority score for MONITOR decision (default 30) |
@@ -256,6 +261,161 @@ curl http://localhost:8000/api/v1/recommendations/{recommendation_id}
 ```
 
 These endpoints are read-only until a later phase persists recommendations from the analysis pipeline.
+
+## Event Processing Architecture
+
+Inbound customer events are ingested asynchronously. The API validates payloads, persists events, and enqueues them for background workers. Workers apply synthetic source updates, run rules-only reanalysis, create deterministic preview alerts, and deliver notifications.
+
+```text
+POST /api/v1/events
+        │
+        ▼
+  Validate customer + payload
+        │
+        ▼
+  Idempotency check (DB-backed)
+        │
+        ▼
+  Persist event (RECEIVED → QUEUED)
+        │
+        ▼
+  asyncio.Queue  ──►  Worker(s)
+        │                 │
+        │                 ├─ Apply event to source records
+        │                 ├─ Rules-only analysis
+        │                 ├─ Store analysis snapshot
+        │                 ├─ Create RULES_PREVIEW alert (if priority ≥ 50)
+        │                 └─ WebSocket + email notifications (after commit)
+        ▼
+  HTTP 202 response (immediate)
+```
+
+### asyncio.Queue MVP limitation
+
+The in-process `asyncio.Queue` is **non-durable**. Events still in the queue are **lost if the process stops**. This is intentional for the MVP — use a durable broker (Redis, Kafka, etc.) in production.
+
+After model changes, reset the local database:
+
+```bash
+cd backend
+uv run python ../scripts/reset_database.py --reset
+```
+
+### Supported event types
+
+| Event type | Description |
+|------------|-------------|
+| `EXTERNAL_HOME_LOAN_INQUIRY` | Bureau trigger for external home-loan inquiry |
+| `EXTERNAL_CARD_INQUIRY` | Bureau trigger for external card inquiry |
+| `SALARY_CREDIT_STOPPED` | Salary not received this month |
+| `SALARY_CREDIT_RESUMED` | Salary received again |
+| `LARGE_EXTERNAL_TRANSFER` | Large transfer to external destination |
+| `FIXED_DEPOSIT_MATURITY` | Fixed deposit approaching or at maturity |
+| `FOREX_SPEND_INCREASE` | Elevated forex spending |
+| `DPD_CHANGED` | Days-past-due change on credit profile |
+| `PRODUCT_USAGE_DECLINE` | Product inactivity / card spend decline |
+| `BALANCE_DECLINE` | Balance decline over 30 days |
+| `INVESTMENT_TRANSFER_INCREASE` | Transfers to external investment platforms |
+| `MANUAL_REANALYSIS` | Re-run analysis without mutating source data |
+
+### Example event request
+
+```bash
+curl -X POST http://localhost:8000/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "C001",
+    "event_type": "EXTERNAL_HOME_LOAN_INQUIRY",
+    "source_system": "CREDIT_BUREAU",
+    "payload": {
+      "severity": "HIGH",
+      "amount_band": "500000-1000000",
+      "trigger_date": "2026-07-01"
+    },
+    "idempotency_key": "demo-home-loan-001",
+    "notifications_enabled": true
+  }'
+```
+
+Returns HTTP **202** with an `IncomingEventResponse`. Duplicate idempotency keys return the existing event with `"duplicate": true`.
+
+### Event status progression
+
+```text
+RECEIVED → QUEUED → PROCESSING → COMPLETED
+                              └─► FAILED (retryable up to EVENT_MAX_RETRIES)
+```
+
+Query event status:
+
+```bash
+curl http://localhost:8000/api/v1/events/{event_id}
+curl "http://localhost:8000/api/v1/events?customer_id=C001&status=COMPLETED"
+
+# Retry a failed event
+curl -X POST http://localhost:8000/api/v1/events/{event_id}/retry
+```
+
+### Alert APIs
+
+```bash
+curl "http://localhost:8000/api/v1/alerts?customer_id=C001&acknowledged=false"
+curl http://localhost:8000/api/v1/alerts/{alert_id}
+
+curl -X PATCH http://localhost:8000/api/v1/alerts/{alert_id}/acknowledge \
+  -H "Content-Type: application/json" \
+  -d '{"rm_id": "RM001", "note": "Review scheduled"}'
+```
+
+Preview alerts are created when rules-only priority is **50–69** (MEDIUM) or **70+** (HIGH/CRITICAL). Priority below 50 or `NO_ACTION` does not generate a retention alert.
+
+### WebSocket live alerts
+
+Connect to `WS /ws/alerts` for real-time retention alerts:
+
+```javascript
+const ws = new WebSocket("ws://localhost:8000/ws/alerts");
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  if (message.type === "RETENTION_ALERT") {
+    console.log("Alert:", message.title, message.priority_score);
+  }
+};
+
+// Heartbeat
+ws.send(JSON.stringify({ type: "PING" }));
+// Server responds: { "type": "PONG", "timestamp": "..." }
+```
+
+On connect the server sends:
+
+```json
+{
+  "type": "CONNECTED",
+  "message": "Connected to RetainAI alerts",
+  "timestamp": "2026-07-08T12:00:00Z"
+}
+```
+
+### Email notifications
+
+When `EMAIL_NOTIFICATIONS_ENABLED=true` and priority meets `ALERT_PRIORITY_THRESHOLD` (default 70), the backend sends a multipart plain-text and HTML email via SMTP (e.g. Mailhog on port 1025).
+
+- **Subject:** `RetainAI Alert: {customer_id} requires retention review`
+- **Content:** customer ID, name, primary signal, priority score, revenue at risk, recommended action, top eligible offer (when available)
+- **Not included:** raw transaction history, account numbers, secrets, or model prompts
+
+**Disclaimer (email and alerts):**
+
+> This alert supports RM review. Product eligibility and financial estimates are indicative and do not represent final approval or guaranteed revenue.
+
+SMTP failures are logged and do **not** fail event processing. Check safe configuration via:
+
+```bash
+curl http://localhost:8000/api/v1/system/notification-status
+curl http://localhost:8000/api/v1/system/queue-status
+```
 
 ## Running Tests
 

@@ -59,6 +59,41 @@ class IncomingEventStatus(StrEnum):
     FAILED = "FAILED"
 
 
+class EventType(StrEnum):
+    """Supported inbound event types for async processing."""
+
+    EXTERNAL_HOME_LOAN_INQUIRY = "EXTERNAL_HOME_LOAN_INQUIRY"
+    EXTERNAL_CARD_INQUIRY = "EXTERNAL_CARD_INQUIRY"
+    SALARY_CREDIT_STOPPED = "SALARY_CREDIT_STOPPED"
+    SALARY_CREDIT_RESUMED = "SALARY_CREDIT_RESUMED"
+    LARGE_EXTERNAL_TRANSFER = "LARGE_EXTERNAL_TRANSFER"
+    FIXED_DEPOSIT_MATURITY = "FIXED_DEPOSIT_MATURITY"
+    FOREX_SPEND_INCREASE = "FOREX_SPEND_INCREASE"
+    DPD_CHANGED = "DPD_CHANGED"
+    PRODUCT_USAGE_DECLINE = "PRODUCT_USAGE_DECLINE"
+    BALANCE_DECLINE = "BALANCE_DECLINE"
+    INVESTMENT_TRANSFER_INCREASE = "INVESTMENT_TRANSFER_INCREASE"
+    MANUAL_REANALYSIS = "MANUAL_REANALYSIS"
+
+
+class AlertType(StrEnum):
+    """Alert classification."""
+
+    RULES_PREVIEW = "RULES_PREVIEW"
+    AGENT_RECOMMENDATION = "AGENT_RECOMMENDATION"
+    SYSTEM = "SYSTEM"
+
+
+class NotificationStatus(StrEnum):
+    """Delivery status for alert notifications."""
+
+    PENDING = "PENDING"
+    SENT = "SENT"
+    PARTIAL = "PARTIAL"
+    FAILED = "FAILED"
+    NOT_REQUIRED = "NOT_REQUIRED"
+
+
 class FreshnessStatus(StrEnum):
     """Freshness state for an aggregated Customer 360 data source."""
 

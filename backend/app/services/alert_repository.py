@@ -13,10 +13,14 @@ def _to_summary(alert: Alert) -> AlertSummary:
     return AlertSummary(
         alert_id=alert.id,
         customer_id=alert.customer_id,
+        event_id=alert.event_id,
         recommendation_id=alert.recommendation_id,
+        alert_type=alert.alert_type,
         severity=alert.severity,
         title=alert.title,
+        priority_score=alert.priority_score,
         acknowledged=alert.acknowledged,
+        notification_status=alert.notification_status,
         created_at=alert.created_at,
     )
 
@@ -25,13 +29,21 @@ def _to_detail(alert: Alert) -> AlertDetail:
     return AlertDetail(
         alert_id=alert.id,
         customer_id=alert.customer_id,
+        event_id=alert.event_id,
         recommendation_id=alert.recommendation_id,
+        alert_type=alert.alert_type,
         severity=alert.severity,
         title=alert.title,
         message=alert.message,
         assigned_rm_id=alert.assigned_rm_id,
+        assigned_rm_email=alert.assigned_rm_email,
+        priority_score=alert.priority_score,
+        recommended_action=alert.recommended_action,
+        recommended_offer_id=alert.recommended_offer_id,
+        notification_status=alert.notification_status,
         acknowledged=alert.acknowledged,
         acknowledged_at=alert.acknowledged_at,
+        acknowledged_by=alert.acknowledged_by,
         created_at=alert.created_at,
     )
 

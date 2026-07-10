@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 
 from app.core.config import Settings, get_settings
-from app.core.database import configure_engine, get_engine, init_db, reset_engine
+from app.core.database import configure_engine, init_db, reset_engine
 from app.main import create_app
 from app.seed.seed_database import seed_database
 
@@ -31,9 +31,10 @@ def test_settings(tmp_path: Path) -> Settings:
 def seeded_client(test_settings: Settings) -> TestClient:
     """Return a test client backed by the full synthetic seed dataset."""
     reset_engine()
-    configure_engine(test_settings.database_url)
-    init_db()
-    with Session(get_engine()) as session:
+    engine = configure_engine(test_settings.database_url)
+    SQLModel.metadata.drop_all(engine)
+    init_db(engine)
+    with Session(engine) as session:
         seed_database(session, skip_if_complete=False)
 
     application = create_app(settings=test_settings)
@@ -47,6 +48,9 @@ def seeded_client(test_settings: Settings) -> TestClient:
 def client(test_settings: Settings) -> TestClient:
     """Return a test client with an empty database."""
     reset_engine()
+    engine = configure_engine(test_settings.database_url)
+    SQLModel.metadata.drop_all(engine)
+    init_db(engine)
     application = create_app(settings=test_settings)
     application.dependency_overrides[get_settings] = lambda: test_settings
     with TestClient(application) as test_client:

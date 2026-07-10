@@ -15,8 +15,10 @@ from app.models.bureau_trigger import BureauTrigger
 from app.models.credit_profile import CreditProfile
 from app.models.customer import Customer
 from app.models.enums import (
+    AlertType,
     CustomerSegment,
     IncomingEventStatus,
+    NotificationStatus,
     PreferredChannel,
     RecommendationDecision,
     RecommendationStatus,
@@ -216,10 +218,12 @@ def test_recommendation_alert_and_interaction_flow(db_session: Session) -> None:
     alert = Alert(
         customer_id="C003",
         recommendation_id=recommendation.id,
+        alert_type=AlertType.AGENT_RECOMMENDATION,
         severity=Severity.HIGH,
         title="Retention priority customer",
         message="Review recommended offer within 24 hours.",
         assigned_rm_id="RM001",
+        notification_status=NotificationStatus.SENT,
         acknowledged=False,
     )
     interaction = Interaction(

@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-**Phase 2 — Deterministic decision engine (complete)**
+**Phase 3 — Asynchronous event processing and notifications (complete)**
 
-Rules-only scoring, eligibility, financial projections, analysis, portfolio, and recommendation read APIs are implemented with full test coverage.
+Event ingestion, idempotency, asyncio queue workers, event-driven Customer 360 updates, rules-only reanalysis, preview alerts, WebSocket broadcasts, SMTP email notifications, and audit logging are implemented with full test coverage.
 
 ## Completed Work
 
@@ -39,15 +39,41 @@ Rules-only scoring, eligibility, financial projections, analysis, portfolio, and
   - `GET /api/v1/portfolio/customers`
   - `GET /api/v1/recommendations`
   - `GET /api/v1/recommendations/{recommendation_id}`
-- [x] Comprehensive tests for all decision-engine components (124 tests passing)
-- [x] README scoring, eligibility, and API documentation
+
+### Phase 3
+
+- [x] Extended `IncomingEvent` model with idempotency, execution tracking, analysis snapshot, and timestamps
+- [x] Extended `Alert` model with event linkage, notification status, and rules-preview fields
+- [x] `AuditLog` model and audit logging service
+- [x] Event payload validation per event type (`app/schemas/events.py`)
+- [x] `EventApplicationService` — applies events to synthetic source records with transactional audit logs
+- [x] `EventQueue` — application-scoped asyncio queue with configurable workers and graceful shutdown
+- [x] `EventProcessor` — status progression, rules-only reanalysis, preview alerts, post-commit notifications
+- [x] `AlertService` — deterministic preview alerts with deduplication and acknowledgement
+- [x] `WebSocketManager` and `WS /ws/alerts` with CONNECTED, PING/PONG, and RETENTION_ALERT broadcasts
+- [x] `EmailService` — aiosmtplib multipart emails with safe content and retry handling
+- [x] `NotificationService` — WebSocket + email orchestration with SENT/PARTIAL/FAILED/NOT_REQUIRED outcomes
+- [x] API endpoints:
+  - `POST /api/v1/events` (202 Accepted)
+  - `GET /api/v1/events`
+  - `GET /api/v1/events/{event_id}`
+  - `POST /api/v1/events/{event_id}/retry`
+  - `GET /api/v1/alerts`
+  - `GET /api/v1/alerts/{alert_id}`
+  - `PATCH /api/v1/alerts/{alert_id}/acknowledge`
+  - `GET /api/v1/system/queue-status`
+  - `GET /api/v1/system/notification-status`
+- [x] FastAPI lifespan startup/shutdown for queue workers and WebSocket cleanup
+- [x] Configuration: `QUEUE_WORKER_COUNT`, `EVENT_MAX_RETRIES`, `EMAIL_NOTIFICATIONS_ENABLED`, etc.
+- [x] Comprehensive tests (160 tests passing)
+- [x] README event-processing architecture documentation
 
 ### Not yet started
 
-- [ ] Recommendation persistence from analysis pipeline
-- [ ] Alert generation from high-priority recommendations
-- [ ] CrewAI copilot integration
-- [ ] Frontend customer portfolio and 360 views
+- [ ] CrewAI agentic recommendation workflow (Qwen integration)
+- [ ] Recommendation persistence from agentic flow
+- [ ] Frontend customer portfolio, alerts, and 360 views
+- [ ] Docker deployment
 
 ## Validation Commands
 
@@ -65,8 +91,15 @@ curl "http://localhost:8000/api/v1/customers?page_size=100"
 curl http://localhost:8000/api/v1/customers/C001/360
 curl -X POST http://localhost:8000/api/v1/analysis/C001/rules-only
 curl http://localhost:8000/api/v1/portfolio/summary
-curl "http://localhost:8000/api/v1/portfolio/customers?page_size=10"
-curl http://localhost:8000/api/v1/recommendations
+
+# Event ingestion
+curl -X POST http://localhost:8000/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{"customer_id":"C001","event_type":"EXTERNAL_HOME_LOAN_INQUIRY","source_system":"CREDIT_BUREAU","payload":{"severity":"HIGH"}}'
+
+curl http://localhost:8000/api/v1/system/queue-status
+curl http://localhost:8000/api/v1/system/notification-status
+curl "http://localhost:8000/api/v1/alerts?customer_id=C001"
 ```
 
 ### Frontend
@@ -82,24 +115,27 @@ npm run build
 | Issue | Severity | Notes |
 |-------|----------|-------|
 | Seed not auto-loaded on API startup | Low | Run `scripts/reset_database.py --reset` before testing API |
+| Existing SQLite DB needs reset after model changes | Low | `create_all` does not alter existing tables; use `--reset` |
+| asyncio.Queue is non-durable | Expected MVP | Events in queue are lost on process stop |
 | Transaction seed timestamps may appear stale vs. runtime clock | Low | Expected for demo data; warnings surface in Customer 360 |
-| Recommendations list empty until persistence phase | Expected | Read API works; analysis does not persist yet |
+| Recommendations list empty until agentic phase | Expected | Read API works; agent recommendations not yet persisted |
 | Docker services empty | Expected | Dockerfiles added in a later phase |
 
 ## Next Recommended Prompt
 
-Use this prompt to begin **Phase 3 — Recommendation persistence and alerts**:
+Use this prompt to begin **Phase 4 — CrewAI agentic recommendation workflow**:
 
 ---
 
-**Phase 3 — Recommendation persistence and alerts**
+**Phase 4 — CrewAI agentic recommendation workflow**
 
-1. Persist rules-only analysis results as `Recommendation` records when requested.
-2. Generate RM alerts for customers exceeding `ALERT_PRIORITY_THRESHOLD`.
-3. Add write endpoints for recommendation status updates.
-4. Add tests for persistence, alert creation, and idempotency.
-5. Update `IMPLEMENTATION_STATUS.md` when tests pass.
+1. Integrate CrewAI Flow with Qwen (or mock mode) for agentic retention recommendations.
+2. Persist agent recommendations linked to events and alerts (`AGENT_RECOMMENDATION` alert type).
+3. Replace or augment rules-preview alerts with final agentic outputs where appropriate.
+4. Add copilot chat endpoints grounded in Customer 360 and approved offers.
+5. Add tests for agent flow, structured Pydantic outputs, and mock LLM mode.
+6. Update `IMPLEMENTATION_STATUS.md` when tests pass.
 
-Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI agents or WebSockets yet.
+Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add frontend views yet unless requested.
 
 ---

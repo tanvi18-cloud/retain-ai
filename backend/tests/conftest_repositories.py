@@ -10,8 +10,10 @@ from app.core.database import configure_engine, init_db, reset_engine
 from app.models.alert import Alert
 from app.models.customer import Customer
 from app.models.enums import (
+    AlertType,
     CustomerSegment,
     IncomingEventStatus,
+    NotificationStatus,
     PreferredChannel,
     RecommendationDecision,
     RecommendationStatus,
@@ -29,6 +31,7 @@ def db_engine(tmp_path):
     reset_engine()
     database_path = tmp_path / "repository_test.db"
     engine = configure_engine(f"sqlite:///{database_path.as_posix()}")
+    SQLModel.metadata.drop_all(engine)
     init_db(engine)
     yield engine
     SQLModel.metadata.drop_all(engine)
@@ -169,19 +172,23 @@ def seeded_session(db_session: Session) -> Session:
         Alert(
             customer_id="C001",
             recommendation_id=latest_recommendation.id,
+            alert_type=AlertType.AGENT_RECOMMENDATION,
             severity=Severity.HIGH,
             title="Retention priority",
             message="Contact customer within 24 hours",
             assigned_rm_id="RM001",
+            notification_status=NotificationStatus.SENT,
             acknowledged=False,
         ),
         Alert(
             customer_id="C002",
             recommendation_id=latest_recommendation.id,
+            alert_type=AlertType.AGENT_RECOMMENDATION,
             severity=Severity.LOW,
             title="Acknowledged alert",
             message="Already reviewed",
             assigned_rm_id="RM001",
+            notification_status=NotificationStatus.SENT,
             acknowledged=True,
         ),
     ]
