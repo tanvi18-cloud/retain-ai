@@ -57,3 +57,11 @@ class IncomingEventStatus(StrEnum):
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+
+
+class FreshnessStatus(StrEnum):
+    """Freshness state for an aggregated Customer 360 data source."""
+
+    FRESH = "FRESH"
+    STALE = "STALE"
+    MISSING = "MISSING"

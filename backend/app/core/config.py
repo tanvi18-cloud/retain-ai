@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     review_priority_threshold: int = Field(default=50, alias="REVIEW_PRIORITY_THRESHOLD")
     queue_worker_count: int = Field(default=1, alias="QUEUE_WORKER_COUNT")
 
+    core_banking_stale_hours: int = Field(default=72, alias="CORE_BANKING_STALE_HOURS")
+    credit_profile_stale_hours: int = Field(default=168, alias="CREDIT_PROFILE_STALE_HOURS")
+    bureau_trigger_stale_hours: int = Field(default=720, alias="BUREAU_TRIGGER_STALE_HOURS")
+    transaction_feature_stale_hours: int = Field(
+        default=48,
+        alias="TRANSACTION_FEATURE_STALE_HOURS",
+    )
+
     @property
     def api_version(self) -> str:
         """Application version exposed via health and OpenAPI metadata."""

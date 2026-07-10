@@ -1,14 +1,31 @@
 """Customer persistence operations."""
 
+from typing import Literal
+
 from sqlalchemy import or_
 from sqlmodel import Session, select
 
-from app.core.exceptions import ResourceNotFoundError
+from app.core.exceptions import InvalidPaginationError, ResourceNotFoundError
 from app.models.customer import Customer
 from app.models.enums import CustomerSegment
 from app.schemas.common import PaginatedResponse
 from app.schemas.customers import CustomerDetail, CustomerSummary
 from app.services.repository_utils import count_query, paginate_offset, validate_pagination
+
+CustomerSortField = Literal[
+    "customer_id",
+    "full_name",
+    "relationship_start_date",
+    "estimated_annual_value",
+]
+SortOrder = Literal["asc", "desc"]
+
+_SORT_COLUMNS = {
+    "customer_id": Customer.customer_id,
+    "full_name": Customer.full_name,
+    "relationship_start_date": Customer.relationship_start_date,
+    "estimated_annual_value": Customer.estimated_annual_value,
+}
 
 
 def _to_summary(customer: Customer) -> CustomerSummary:
@@ -53,10 +70,20 @@ class CustomerRepository:
         page_size: int = 20,
         segment: CustomerSegment | None = None,
         search: str | None = None,
+        sort_by: CustomerSortField = "customer_id",
+        sort_order: SortOrder = "asc",
     ) -> PaginatedResponse[CustomerSummary]:
         """Return a paginated list of customers."""
         validate_pagination(page, page_size)
-        statement = select(Customer).order_by(Customer.customer_id)
+        sort_column = _SORT_COLUMNS.get(sort_by)
+        if sort_column is None:
+            raise InvalidPaginationError(
+                message=f"Unsupported sort field: {sort_by}",
+                details={"sort_by": sort_by},
+            )
+
+        order_expression = sort_column.asc() if sort_order == "asc" else sort_column.desc()
+        statement = select(Customer).order_by(order_expression)
         statement = self._apply_filters(statement, segment=segment, search=search)
         total = count_query(self.session, statement)
         customers = self.session.exec(

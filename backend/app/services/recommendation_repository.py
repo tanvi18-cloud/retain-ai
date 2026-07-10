@@ -86,6 +86,16 @@ class RecommendationRepository:
             page_size=page_size,
         )
 
+    def list_all_by_customer(self, customer_id: str) -> list[RecommendationSummary]:
+        """Return all recommendations for a customer ordered newest first."""
+        statement = (
+            select(Recommendation)
+            .where(Recommendation.customer_id == customer_id)
+            .order_by(Recommendation.created_at.desc())
+        )
+        recommendations = self.session.exec(statement).all()
+        return [_to_summary(item) for item in recommendations]
+
     def get_latest_by_customer(self, customer_id: str) -> RecommendationDetail:
         """Return the most recent recommendation for a customer."""
         statement = (

@@ -138,6 +138,41 @@ uv run python ../scripts/reset_database.py --reset
 
 Seed sources: `CORE_BANKING`, `CREDIT_BUREAU`, `TRANSACTION_ENGINE`, and `CRM` JSON files under `backend/app/seed/`.
 
+## Customer 360 API
+
+After seeding the database, the following endpoints are available:
+
+```bash
+# List customers (paginated)
+curl "http://localhost:8000/api/v1/customers?page=1&page_size=10"
+
+# Search and filter
+curl "http://localhost:8000/api/v1/customers?search=Ananya&segment=PRIORITY"
+
+# Sort by estimated annual value descending
+curl "http://localhost:8000/api/v1/customers?sort_by=estimated_annual_value&sort_order=desc"
+
+# Customer detail
+curl http://localhost:8000/api/v1/customers/C001
+
+# Customer 360 aggregated view
+curl http://localhost:8000/api/v1/customers/C001/360
+```
+
+The Customer 360 response includes customer profile, accounts, credit profile, bureau triggers, transaction features, recommendations, recent interactions, per-source freshness metadata, and non-fatal data warnings when optional sources are missing or stale.
+
+Missing customers return the standard error envelope:
+
+```json
+{
+  "error": {
+    "code": "CUSTOMER_NOT_FOUND",
+    "message": "Customer C999 was not found",
+    "details": {}
+  }
+}
+```
+
 ## Running Tests
 
 ```bash

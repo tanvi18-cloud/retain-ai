@@ -64,3 +64,19 @@ class InteractionRepository:
             page=page,
             page_size=page_size,
         )
+
+    def list_recent_by_customer(
+        self,
+        customer_id: str,
+        *,
+        limit: int = 10,
+    ) -> list[InteractionDetail]:
+        """Return the most recent interactions for a customer."""
+        statement = (
+            select(Interaction)
+            .where(Interaction.customer_id == customer_id)
+            .order_by(Interaction.created_at.desc())
+            .limit(limit)
+        )
+        interactions = self.session.exec(statement).all()
+        return [_to_detail(interaction) for interaction in interactions]

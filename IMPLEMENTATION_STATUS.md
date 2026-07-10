@@ -2,36 +2,44 @@
 
 ## Current Phase
 
-**Phase 1 — Backend foundation (near complete)**
+**Phase 2 — Customer API and Customer 360 (partial)**
 
-Synthetic seed data system is implemented. Public CRUD/list API endpoints are not yet wired to repositories.
+Customer list/detail/360 endpoints and aggregation service are complete. Churn scoring and agentic copilot are not yet implemented.
 
 ## Completed Work
 
 ### Phase 0
 
-- [x] Initialized git repository
-- [x] Created `PROJECT_REQUIREMENTS.md` with stack, principles, and planned phases
-- [x] Created `IMPLEMENTATION_STATUS.md` (this file)
-- [x] Created `.gitignore`, `.editorconfig`, and root `README.md`
+- [x] Initialized git repository and core project documentation
 
 ### Phase 1
 
-- [x] Monorepo layout: `backend/`, `frontend/`, `scripts/`, `docs/`, `docker/`
-- [x] Backend FastAPI shell with health endpoints, config, logging, and exception handlers
-- [x] SQLModel domain models with central enums and indexes
-- [x] API schemas separated from database models
-- [x] Repository layer for customers, offers, recommendations, alerts, events, interactions
-- [x] Synthetic seed JSON datasets for 10 fictional customers and 8 approved offers
-- [x] `app/seed/seed_database.py` — validated, idempotent, FK-safe seed loader
-- [x] `scripts/reset_database.py` — seed and `--reset` modes with readable summary output
-- [x] Seed tests covering scenario constraints, idempotency, and reset behavior
-- [x] Root `README.md` scenario table and synthetic-data disclaimer
+- [x] Monorepo scaffold with backend FastAPI shell and frontend Vite app
+- [x] SQLModel domain models, repositories, API schemas, and exception handling
+- [x] Synthetic seed data for 10 fictional customers and 8 approved offers
+- [x] Idempotent seed loader and `scripts/reset_database.py`
 
-### Not yet started (Phase 1 remainder)
+### Phase 2 (in progress)
 
-- [ ] Public API routes wired to repositories
-- [ ] Optional automatic seed on application startup in development
+- [x] Freshness thresholds in `app/core/config.py` and `.env.example`
+- [x] `FreshnessStatus` enum (`FRESH`, `STALE`, `MISSING`)
+- [x] Repository methods for accounts, credit profiles, transaction features, bureau triggers
+- [x] Customer repository sorting support
+- [x] `Customer360Service` with freshness calculation and data warnings
+- [x] Customer API endpoints:
+  - `GET /api/v1/customers`
+  - `GET /api/v1/customers/{customer_id}`
+  - `GET /api/v1/customers/{customer_id}/360`
+- [x] OpenAPI summaries, response models, and documented 404 responses
+- [x] Customer 360 and customer API tests (64 tests passing)
+- [x] README Customer 360 API examples
+
+### Not yet started
+
+- [ ] Deterministic churn and retention scoring services
+- [ ] Recommendation and alert generation pipeline
+- [ ] CrewAI copilot integration
+- [ ] Frontend customer portfolio and 360 views
 
 ## Validation Commands
 
@@ -44,16 +52,10 @@ uv run ruff check .
 uv run pytest
 uv run python ../scripts/reset_database.py --reset
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-curl http://localhost:8000/health
-```
 
-Or with Make:
-
-```bash
-cd backend
-make lint
-make test
-make run
+curl "http://localhost:8000/api/v1/customers?page_size=100"
+curl http://localhost:8000/api/v1/customers/C001
+curl http://localhost:8000/api/v1/customers/C001/360
 ```
 
 ### Frontend
@@ -68,25 +70,25 @@ npm run build
 
 | Issue | Severity | Notes |
 |-------|----------|-------|
-| No public CRUD endpoints yet | Expected | Repositories and seed data ready |
-| Seed not auto-loaded on API startup | Low | Run `scripts/reset_database.py` manually for now |
-| Python 3.13 used locally | Low | `requires-python = ">=3.11"` |
+| Seed not auto-loaded on API startup | Low | Run `scripts/reset_database.py --reset` before testing API |
+| Transaction seed timestamps may appear stale vs. runtime clock | Low | Expected for demo data; warnings surface in Customer 360 |
+| No scoring or recommendations generated yet | Expected | Added in next phase |
 | Docker services empty | Expected | Dockerfiles added in a later phase |
 
 ## Next Recommended Prompt
 
-Use this prompt to begin **Phase 2 — Customer API routes and scoring services**:
+Use this prompt to begin **Phase 2 — Deterministic scoring services**:
 
 ---
 
-**Phase 2 — Customer API routes**
+**Phase 2 — Deterministic scoring services**
 
-1. Add `app/api/routes/customers.py` exposing list/get customer endpoints using repositories and response schemas.
-2. Add route tests verifying pagination, search, segment filters, and standard error envelopes.
-3. Wire routers into `app/api/router.py`.
-4. Optionally auto-run idempotent seed on startup when `APP_ENV=development`.
+1. Add `app/services/churn_scoring_service.py` and `app/services/value_scoring_service.py` with deterministic, auditable calculations.
+2. Add `app/services/offer_eligibility_service.py` returning only approved offers from the catalog.
+3. Expose scores via internal service methods and pytest coverage for each scenario customer (C001–C010).
+4. Do not allow the LLM to alter calculated scores.
 5. Update `IMPLEMENTATION_STATUS.md` when tests pass.
 
-Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add churn scoring, CrewAI agents, or WebSockets yet.
+Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI agents or WebSockets yet.
 
 ---
