@@ -164,3 +164,39 @@ class AgentValidationFailedError(DomainError):
             details=details,
             status_code=422,
         )
+
+
+class PolicyValidationFailedError(DomainError):
+    """Raised when final policy validation blocks persistence."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="POLICY_VALIDATION_FAILED",
+            message=message,
+            details=details,
+            status_code=422,
+        )
+
+
+class InvalidStatusTransitionError(DomainError):
+    """Raised when a recommendation status transition is not allowed."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="INVALID_STATUS_TRANSITION",
+            message=message,
+            details=details,
+            status_code=409,
+        )
+
+
+class AnalysisExecutionNotFoundError(DomainError):
+    """Raised when an analysis execution is not found."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="ANALYSIS_EXECUTION_NOT_FOUND",
+            message=message,
+            details=details,
+            status_code=404,
+        )

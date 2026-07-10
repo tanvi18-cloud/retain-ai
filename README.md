@@ -263,11 +263,153 @@ curl "http://localhost:8000/api/v1/recommendations?page=1&page_size=20"
 curl http://localhost:8000/api/v1/recommendations/{recommendation_id}
 ```
 
-These endpoints are read-only until a later phase persists recommendations from the analysis pipeline.
+These endpoints return persisted recommendations from the agentic retention flow, including scores, RM brief fields, policy warnings, and interaction history.
+
+## Agentic Retention Workflow (Phase 5)
+
+Events and manual analysis invoke the **Retention Flow**, which routes by deterministic priority score and optionally runs the four-agent **Retention Crew**. Deterministic scores remain authoritative; agents explain, select eligible offers, and produce RM briefs only.
+
+### Retention Crew sequence
+
+```mermaid
+sequenceDiagram
+    participant Flow as Retention Flow
+    participant SI as Signal Investigator
+    participant RD as Retention Decision
+    participant OS as Offer Strategy
+    participant RM as RM Copilot
+    participant PV as Policy Validation
+
+    Flow->>SI: Customer 360 + deterministic scores
+    SI-->>Flow: SignalInvestigation
+    Flow->>RD: Investigation + authoritative decision
+    RD-->>Flow: RetentionDecisionOutput
+    Flow->>OS: Eligible offers + financial options
+    OS-->>Flow: OfferStrategyOutput
+    Flow->>RM: All prior outputs + evidence
+    RM-->>Flow: RMCopilotBrief
+    Flow->>PV: Validate against deterministic analysis
+    PV-->>Flow: FinalPolicyValidationResult
+```
+
+### Flow routing
+
+```mermaid
+flowchart TD
+    A[Initialize AnalysisExecution] --> B[Load Customer 360]
+    B --> C[Deterministic Analysis]
+    C --> D{Priority score}
+    D -->|below 30| E[NO_ACTION route]
+    D -->|30 to 49| F[MONITOR route]
+    D -->|50 or above| G[Full Retention Crew]
+    E --> H[Optional rules-only persistence]
+    F --> I[Monitor recommendation]
+    G --> J[Policy validation]
+    J -->|valid| K[Persist recommendation]
+    J -->|critical failure| L[Mark execution FAILED]
+    K --> M{RETAIN or REVIEW and priority >= 50?}
+    M -->|yes| N[AGENT_RECOMMENDATION alert]
+    M -->|no| O[Complete execution]
+    N --> P[WebSocket + email notify RM]
+    P --> O
+```
+
+| Priority | Route | Crew | Alert | Email (default) |
+|----------|-------|------|-------|-----------------|
+| below 30 | NO_ACTION | No | No | No |
+| 30–49 | MONITOR | No | No | No |
+| 50+ | RETAIN/REVIEW | Yes | Yes (AGENT_RECOMMENDATION) | Yes when priority ≥ 70 |
+
+Configuration (see `.env.example`):
+
+- `PERSIST_NO_ACTION_RECOMMENDATIONS` — save rules-only NO_ACTION outcomes
+- `RUN_FULL_CREW_MIN_PRIORITY` — minimum priority to run full crew (default 50)
+- `CREATE_ALERT_MIN_PRIORITY` — minimum priority for final agent alert (default 50)
+- `SEND_EMAIL_MIN_PRIORITY` — minimum priority for agent alert email (default 70)
+
+### Manual analysis API
+
+```bash
+# Queue agentic analysis (returns 202 immediately)
+curl -X POST http://localhost:8000/api/v1/analysis/C001 \
+  -H "Content-Type: application/json" \
+  -d '{"notifications_enabled": true, "force_reanalysis": false}'
+
+# Poll execution status
+curl http://localhost:8000/api/v1/analysis/executions/{execution_id}
+
+# List executions with filters
+curl "http://localhost:8000/api/v1/analysis/executions?customer_id=C001&status=COMPLETED"
+```
+
+### Recommendation lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> NEW
+    NEW --> REVIEWED
+    NEW --> APPROVED
+    NEW --> REJECTED
+    REVIEWED --> APPROVED
+    REVIEWED --> REJECTED
+    REVIEWED --> CONTACTED
+    APPROVED --> CONTACTED
+    APPROVED --> CLOSED
+    REJECTED --> CLOSED
+    CONTACTED --> CLOSED
+    CLOSED --> [*]
+```
+
+RM action endpoints:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/recommendations/{id}/review \
+  -H "Content-Type: application/json" -d '{"rm_id": "RM001", "notes": "Reviewed"}'
+
+curl -X POST http://localhost:8000/api/v1/recommendations/{id}/approve \
+  -H "Content-Type: application/json" -d '{"rm_id": "RM001"}'
+
+curl -X POST http://localhost:8000/api/v1/recommendations/{id}/reject \
+  -H "Content-Type: application/json" \
+  -d '{"rm_id": "RM001", "rejection_reason": "Customer already retained"}'
+
+curl -X POST http://localhost:8000/api/v1/recommendations/{id}/contacted \
+  -H "Content-Type: application/json" \
+  -d '{"rm_id": "RM001", "contact_channel": "PHONE", "offer_presented": true}'
+
+curl -X POST http://localhost:8000/api/v1/recommendations/{id}/close \
+  -H "Content-Type: application/json" \
+  -d '{"rm_id": "RM001", "closing_note": "Case resolved"}'
+```
+
+**Human approval disclaimer:** RM approval means authorization to **discuss** the recommendation. It does **not** represent credit, product, or pricing approval.
+
+### Event-to-recommendation flow
+
+```text
+POST /api/v1/events
+        │
+        ▼
+  Apply event mutation (idempotent)
+        │
+        ▼
+  Create AnalysisExecution (AGENTIC)
+        │
+        ▼
+  Retention Flow (routing + optional Crew)
+        │
+        ▼
+  Persist Recommendation + AGENT_RECOMMENDATION alert
+        │
+        ▼
+  WebSocket + email (after commit; failure does not roll back recommendation)
+```
+
+Final `AGENT_RECOMMENDATION` alerts are separate from any existing `RULES_PREVIEW` alerts and include `recommendation_id` in the WebSocket payload.
 
 ## Event Processing Architecture
 
-Inbound customer events are ingested asynchronously. The API validates payloads, persists events, and enqueues them for background workers. Workers apply synthetic source updates, run rules-only reanalysis, create deterministic preview alerts, and deliver notifications.
+Inbound customer events are ingested asynchronously. The API validates payloads, persists events, and enqueues them for background workers. Workers apply synthetic source updates, run the **Retention Flow** (deterministic analysis + optional Crew), persist recommendations, create **AGENT_RECOMMENDATION** alerts, and deliver notifications.
 
 ```text
 POST /api/v1/events
@@ -285,9 +427,9 @@ POST /api/v1/events
   asyncio.Queue  ──►  Worker(s)
         │                 │
         │                 ├─ Apply event to source records
-        │                 ├─ Rules-only analysis
-        │                 ├─ Store analysis snapshot
-        │                 ├─ Create RULES_PREVIEW alert (if priority ≥ 50)
+        │                 ├─ Retention Flow (Crew when priority ≥ 50)
+        │                 ├─ Store analysis snapshot + link execution
+        │                 ├─ Create AGENT_RECOMMENDATION alert (when eligible)
         │                 └─ WebSocket + email notifications (after commit)
         ▼
   HTTP 202 response (immediate)
@@ -370,7 +512,7 @@ curl -X PATCH http://localhost:8000/api/v1/alerts/{alert_id}/acknowledge \
   -d '{"rm_id": "RM001", "note": "Review scheduled"}'
 ```
 
-Preview alerts are created when rules-only priority is **50–69** (MEDIUM) or **70+** (HIGH/CRITICAL). Priority below 50 or `NO_ACTION` does not generate a retention alert.
+Preview alerts (`RULES_PREVIEW`) may still exist from earlier runs. Final agent alerts use type `AGENT_RECOMMENDATION` and include `recommendation_id`. Priority below `CREATE_ALERT_MIN_PRIORITY` (default 50) or `NO_ACTION` does not generate a final retention alert.
 
 ### WebSocket live alerts
 
@@ -403,11 +545,11 @@ On connect the server sends:
 
 ### Email notifications
 
-When `EMAIL_NOTIFICATIONS_ENABLED=true` and priority meets `ALERT_PRIORITY_THRESHOLD` (default 70), the backend sends a multipart plain-text and HTML email via SMTP (e.g. Mailhog on port 1025).
+When `EMAIL_NOTIFICATIONS_ENABLED=true` and priority meets `SEND_EMAIL_MIN_PRIORITY` (default 70), the backend sends agent recommendation emails via SMTP (e.g. Mailhog on port 1025).
 
-- **Subject:** `RetainAI Alert: {customer_id} requires retention review`
-- **Content:** customer ID, name, primary signal, priority score, revenue at risk, recommended action, top eligible offer (when available)
-- **Not included:** raw transaction history, account numbers, secrets, or model prompts
+- **Subject:** `RetainAI Agent Recommendation: {customer_id}`
+- **Content:** customer ID, name, main signal, priority score, decision, recommended RM action, selected discussion offer, revenue at risk, expected net benefit, eligibility disclaimer
+- **Not included:** raw transactions, account numbers, secrets, or model prompts
 
 **Disclaimer (email and alerts):**
 
@@ -463,7 +605,7 @@ All agent responses validate against Pydantic schemas in `app/schemas/agent_outp
 
 Shared policy in `app/core/agent_policy.py` requires agents to use tool data only, never invent financial values, and never promise approval or guaranteed revenue.
 
-CrewAI Crew/Flow orchestration will be added in a later phase. Individual agents are callable via `run_signal_investigator`, `run_retention_decision`, `run_offer_strategy`, and `run_rm_copilot`.
+CrewAI Crew/Flow orchestration is implemented in `app/crews/retention_crew.py` and `app/flows/retention_flow.py`. Individual agents remain callable via `run_signal_investigator`, `run_retention_decision`, `run_offer_strategy`, and `run_rm_copilot`.
 
 ## Running Tests
 

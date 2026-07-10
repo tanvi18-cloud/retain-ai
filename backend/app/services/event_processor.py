@@ -1,24 +1,22 @@
-"""Process queued inbound events through rules-only analysis."""
+"""Process queued inbound events through the retention flow."""
 
 from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
 
 from sqlmodel import Session
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_engine
 from app.core.logging import get_logger
+from app.flows.retention_flow import run_retention_flow
 from app.models.alert import Alert
 from app.models.customer import Customer
-from app.models.enums import IncomingEventStatus
+from app.models.enums import AnalysisExecutionMode, IncomingEventStatus
 from app.models.event import IncomingEvent
-from app.schemas.analysis import RulesOnlyAnalysisResponse
-from app.services.alert_service import AlertService
-from app.services.analysis_service import AnalysisService
+from app.services.analysis_execution_service import AnalysisExecutionService
 from app.services.audit_log_service import write_audit_log
 from app.services.event_application_service import EventApplicationService
 from app.services.notification_service import NotificationService
@@ -31,26 +29,9 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-def analysis_snapshot(analysis: RulesOnlyAnalysisResponse) -> dict[str, Any]:
+def analysis_snapshot(flow_summary: dict[str, Any]) -> dict[str, Any]:
     """Return a safe analysis snapshot for event storage."""
-    top_offer = None
-    if analysis.financial_options:
-        top_offer = {
-            "offer_id": analysis.financial_options[0].offer_id,
-            "offer_name": analysis.financial_options[0].offer_name,
-            "expected_net_benefit": analysis.financial_options[0].financials.expected_net_benefit,
-        }
-    return {
-        "customer_id": analysis.customer_id,
-        "churn_score": analysis.churn_result.score,
-        "value_score": analysis.value_result.score,
-        "priority_score": analysis.priority_result.priority_score,
-        "decision": analysis.priority_result.decision.value,
-        "primary_trigger": analysis.primary_trigger,
-        "suggested_action": analysis.suggested_action,
-        "top_offer": top_offer,
-        "analysis_version": analysis.analysis_version,
-    }
+    return flow_summary
 
 
 class EventProcessor:
@@ -60,8 +41,7 @@ class EventProcessor:
         self.session = session
         self.settings = settings
         self.application_service = EventApplicationService(session)
-        self.analysis_service = AnalysisService(session)
-        self.alert_service = AlertService(session, settings)
+        self.execution_service = AnalysisExecutionService(session)
 
     def process_sync(self, event_id: str) -> str | None:
         """Synchronously process a queued event; return created alert ID if any."""
@@ -74,38 +54,56 @@ class EventProcessor:
 
         event.status = IncomingEventStatus.PROCESSING
         event.processing_started_at = _utc_now()
-        if event.execution_id is None:
-            event.execution_id = str(uuid4())
         self.session.add(event)
         self.session.commit()
 
         alert_id: str | None = None
         try:
             changes = self.application_service.apply_event(event, event.payload_json)
-            analysis = self.analysis_service.analyze_customer_rules_only(event.customer_id)
-            snapshot = analysis_snapshot(analysis)
-            event.analysis_result_json = snapshot
-            customer = self.application_service.get_customer(event.customer_id)
-            if customer is not None:
-                alert = self.alert_service.create_preview_alert_if_needed(
-                    event=event,
-                    analysis=analysis,
-                    customer=customer,
-                )
-                if alert is not None:
-                    alert_id = alert.id
 
+            existing_execution = self.execution_service.find_by_event_id(event.id)
+            if existing_execution and existing_execution.status.value == "COMPLETED":
+                execution = existing_execution
+            else:
+                execution = self.execution_service.create_execution(
+                    customer_id=event.customer_id,
+                    mode=AnalysisExecutionMode.AGENTIC,
+                    event_id=event.id,
+                )
+
+            event.execution_id = execution.id
+            self.session.add(event)
+            self.session.commit()
+
+            flow_result = run_retention_flow(
+                self.session,
+                execution_id=execution.id,
+                customer_id=event.customer_id,
+                event_id=event.id,
+                notifications_enabled=event.notifications_enabled,
+                settings=self.settings,
+            )
+
+            snapshot = flow_result.flow_summary or {
+                "execution_id": execution.id,
+                "decision": flow_result.decision,
+                "priority_score": flow_result.priority_score,
+                "recommendation_id": flow_result.recommendation_id,
+            }
+            event.analysis_result_json = snapshot
             event.status = IncomingEventStatus.COMPLETED
             event.processed_at = _utc_now()
             event.error_message = None
             self.session.add(event)
+            alert_id = flow_result.alert_id
+
             write_audit_log(
                 self.session,
                 entity_type="incoming_events",
                 entity_id=event.id,
                 action="EVENT_COMPLETED",
                 actor_type="EVENT_PROCESSOR",
-                actor_id=event.execution_id,
+                actor_id=execution.id,
                 details={"changes": changes, "analysis_summary": snapshot},
             )
             self.session.commit()
@@ -126,7 +124,6 @@ class EventProcessor:
                     entity_id=event_id,
                     action="EVENT_FAILED",
                     actor_type="EVENT_PROCESSOR",
-                    actor_id=failed_event.execution_id,
                     details={"error": failed_event.error_message},
                 )
                 self.session.commit()
@@ -148,12 +145,10 @@ async def deliver_notifications(
         customer = session.get(Customer, event.customer_id) if event else None
         if event is None or alert is None or customer is None:
             return
-        analysis = AnalysisService(session).analyze_customer_rules_only(event.customer_id)
         notification_service = NotificationService(session, settings, websocket_manager)
-        await notification_service.deliver_alert(
+        await notification_service.deliver_agent_alert(
             alert=alert,
             event=event,
-            analysis=analysis,
             customer=customer,
         )
         session.commit()

@@ -80,14 +80,17 @@ class RetentionAlertBroadcast(APIModel):
     """WebSocket retention alert payload."""
 
     type: str = "RETENTION_ALERT"
+    alert_type: AlertType | None = None
     alert_id: str
     event_id: str | None
+    recommendation_id: str | None = None
     customer_id: str
     severity: Severity
     title: str
     priority_score: int
     recommended_action: str
     recommended_offer: str | None = None
+    expected_net_benefit: float | None = None
     created_at: datetime
 
 

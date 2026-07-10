@@ -86,6 +86,67 @@ class EmailService:
             logger.exception("email_delivery_failed", customer_id=customer_id)
             return EmailDeliveryResult(success=False, error=str(exc))
 
+    async def send_agent_alert_email(
+        self,
+        *,
+        to_email: str,
+        customer_id: str,
+        customer_name: str,
+        primary_signal: str | None,
+        priority_score: int,
+        decision: str,
+        recommended_action: str,
+        recommended_offer: str | None,
+        revenue_at_risk: float,
+        expected_net_benefit: float,
+    ) -> EmailDeliveryResult:
+        """Send a multipart agent recommendation alert email."""
+        if not self.settings.email_notifications_enabled:
+            logger.info("email_notifications_disabled", customer_id=customer_id)
+            return EmailDeliveryResult(success=False, error="Email notifications disabled")
+
+        subject = f"RetainAI Agent Recommendation: {customer_id}"
+        text_body = self._build_agent_text_body(
+            customer_id=customer_id,
+            customer_name=customer_name,
+            primary_signal=primary_signal,
+            priority_score=priority_score,
+            decision=decision,
+            recommended_action=recommended_action,
+            recommended_offer=recommended_offer,
+            revenue_at_risk=revenue_at_risk,
+            expected_net_benefit=expected_net_benefit,
+        )
+        html_body = self._build_agent_html_body(
+            customer_id=customer_id,
+            customer_name=customer_name,
+            primary_signal=primary_signal,
+            priority_score=priority_score,
+            decision=decision,
+            recommended_action=recommended_action,
+            recommended_offer=recommended_offer,
+            revenue_at_risk=revenue_at_risk,
+            expected_net_benefit=expected_net_benefit,
+        )
+
+        if self.settings.app_env == "development" and not self.smtp_configured:
+            logger.info(
+                "email_preview",
+                customer_id=customer_id,
+                subject=subject,
+                to_email=to_email,
+            )
+            return EmailDeliveryResult(success=True, preview_logged=True)
+
+        try:
+            await self._send_message(
+                to_email=to_email, subject=subject, text_body=text_body, html_body=html_body
+            )
+            return EmailDeliveryResult(success=True)
+        except Exception as exc:
+            logger.exception("email_delivery_failed", customer_id=customer_id)
+            return EmailDeliveryResult(success=False, error=str(exc))
+
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1), reraise=True)
     async def _send_message(
         self,
@@ -165,6 +226,80 @@ class EmailService:
           <li><strong>Revenue at Risk (estimate):</strong> {revenue_at_risk:.2f}</li>
           <li><strong>Recommended Action:</strong> {recommended_action}</li>
           {offer_row}
+        </ul>
+        <p>{ELIGIBILITY_DISCLAIMER}</p>
+        <p>{EMAIL_DISCLAIMER}</p>
+        </body></html>
+        """
+
+    def _build_agent_text_body(
+        self,
+        *,
+        customer_id: str,
+        customer_name: str,
+        primary_signal: str | None,
+        priority_score: int,
+        decision: str,
+        recommended_action: str,
+        recommended_offer: str | None,
+        revenue_at_risk: float,
+        expected_net_benefit: float,
+    ) -> str:
+        lines = [
+            "RetainAI Agent Recommendation",
+            "",
+            f"Customer ID: {customer_id}",
+            f"Customer Name: {customer_name}",
+            f"Main Signal: {primary_signal or 'Not available'}",
+            f"Priority Score: {priority_score}",
+            f"Decision: {decision}",
+            f"Recommended RM Action: {recommended_action}",
+        ]
+        if recommended_offer:
+            lines.append(f"Selected Discussion Offer: {recommended_offer}")
+        lines.extend(
+            [
+                f"Revenue at Risk (estimate): {revenue_at_risk:.2f}",
+                f"Expected Net Benefit (estimate): {expected_net_benefit:.2f}",
+                "",
+                ELIGIBILITY_DISCLAIMER,
+                "",
+                EMAIL_DISCLAIMER,
+            ]
+        )
+        return "\n".join(lines)
+
+    def _build_agent_html_body(
+        self,
+        *,
+        customer_id: str,
+        customer_name: str,
+        primary_signal: str | None,
+        priority_score: int,
+        decision: str,
+        recommended_action: str,
+        recommended_offer: str | None,
+        revenue_at_risk: float,
+        expected_net_benefit: float,
+    ) -> str:
+        offer_row = (
+            f"<li><strong>Selected Discussion Offer:</strong> {recommended_offer}</li>"
+            if recommended_offer
+            else ""
+        )
+        return f"""
+        <html><body>
+        <h2>RetainAI Agent Recommendation</h2>
+        <ul>
+          <li><strong>Customer ID:</strong> {customer_id}</li>
+          <li><strong>Customer Name:</strong> {customer_name}</li>
+          <li><strong>Main Signal:</strong> {primary_signal or 'Not available'}</li>
+          <li><strong>Priority Score:</strong> {priority_score}</li>
+          <li><strong>Decision:</strong> {decision}</li>
+          <li><strong>Recommended RM Action:</strong> {recommended_action}</li>
+          {offer_row}
+          <li><strong>Revenue at Risk (estimate):</strong> {revenue_at_risk:.2f}</li>
+          <li><strong>Expected Net Benefit (estimate):</strong> {expected_net_benefit:.2f}</li>
         </ul>
         <p>{ELIGIBILITY_DISCLAIMER}</p>
         <p>{EMAIL_DISCLAIMER}</p>

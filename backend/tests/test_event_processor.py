@@ -10,7 +10,6 @@ from app.models.enums import EventType, IncomingEventStatus
 from app.models.event import IncomingEvent
 from app.models.transaction_feature import TransactionFeature
 from app.seed.seed_database import seed_database
-from app.services.analysis_service import AnalysisService
 from app.services.event_application_service import EventApplicationService
 from app.services.event_processor import EventProcessor, analysis_snapshot
 
@@ -137,8 +136,14 @@ def test_processing_marks_completed(
     assert refreshed.analysis_result_json is not None
 
 
-def test_analysis_snapshot_structure(seeded_processor_session: Session):
-    analysis = AnalysisService(seeded_processor_session).analyze_customer_rules_only("C001")
-    snapshot = analysis_snapshot(analysis)
+def test_analysis_snapshot_structure():
+    snapshot = analysis_snapshot(
+        {
+            "execution_id": "exec-1",
+            "customer_id": "C001",
+            "priority_score": 84,
+            "decision": "RETAIN",
+        }
+    )
     assert snapshot["customer_id"] == "C001"
     assert "priority_score" in snapshot

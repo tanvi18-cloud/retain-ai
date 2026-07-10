@@ -28,11 +28,12 @@ def _to_summary(recommendation: Recommendation) -> RecommendationSummary:
     )
 
 
-def _to_detail(recommendation: Recommendation) -> RecommendationDetail:
+def _to_detail(recommendation: Recommendation, interactions=None) -> RecommendationDetail:
     return RecommendationDetail(
         recommendation_id=recommendation.id,
         customer_id=recommendation.customer_id,
         triggering_event_id=recommendation.triggering_event_id,
+        analysis_execution_id=recommendation.analysis_execution_id,
         churn_score=recommendation.churn_score,
         value_score=recommendation.value_score,
         priority_score=recommendation.priority_score,
@@ -43,10 +44,18 @@ def _to_detail(recommendation: Recommendation) -> RecommendationDetail:
         expected_net_benefit=recommendation.expected_net_benefit,
         confidence=recommendation.confidence,
         summary=recommendation.summary,
+        investigation_summary=recommendation.investigation_summary,
         evidence_json=recommendation.evidence_json,
+        rm_brief_json=recommendation.rm_brief_json or {},
+        policy_warnings_json=list(recommendation.policy_warnings_json or []),
+        validation_warnings_json=list(recommendation.validation_warnings_json or []),
+        created_by_mode=recommendation.created_by_mode,
+        calculation_version=recommendation.calculation_version,
+        policy_version=recommendation.policy_version,
         status=recommendation.status,
         created_at=recommendation.created_at,
         updated_at=recommendation.updated_at,
+        interactions=interactions or [],
     )
 
 
@@ -64,7 +73,30 @@ class RecommendationRepository:
                 code="RECOMMENDATION_NOT_FOUND",
                 message=f"Recommendation {recommendation_id} was not found",
             )
-        return _to_detail(recommendation)
+        from app.services.interaction_repository import InteractionRepository
+
+        interactions = InteractionRepository(self.session).list_recent_by_customer(
+            recommendation.customer_id,
+            limit=10,
+        )
+        return _to_detail(recommendation, interactions=interactions)
+
+    def get_model_by_id(self, recommendation_id: str) -> Recommendation:
+        """Return the ORM recommendation model."""
+        recommendation = self.session.get(Recommendation, recommendation_id)
+        if recommendation is None:
+            raise ResourceNotFoundError(
+                code="RECOMMENDATION_NOT_FOUND",
+                message=f"Recommendation {recommendation_id} was not found",
+            )
+        return recommendation
+
+    def get_by_execution_id(self, execution_id: str) -> Recommendation | None:
+        """Return recommendation linked to an analysis execution."""
+        statement = select(Recommendation).where(
+            Recommendation.analysis_execution_id == execution_id
+        )
+        return self.session.exec(statement).first()
 
     def list_by_customer(
         self,

@@ -136,6 +136,93 @@ class AlertService:
         )
         return alert
 
+    def create_agent_recommendation_alert(
+        self,
+        *,
+        customer: Customer,
+        analysis: RulesOnlyAnalysisResponse,
+        recommendation_id: str,
+        event: IncomingEvent | None = None,
+        crew_result=None,
+    ) -> Alert | None:
+        """Create a final agent recommendation alert when thresholds are met."""
+        priority_score = analysis.priority_result.priority_score
+        decision = analysis.priority_result.decision
+        if decision == RecommendationDecision.NO_ACTION:
+            return None
+        if priority_score < self.settings.create_alert_min_priority:
+            return None
+        if decision not in {RecommendationDecision.RETAIN, RecommendationDecision.REVIEW}:
+            return None
+
+        if event is not None:
+            existing = self.session.exec(
+                select(Alert).where(
+                    Alert.event_id == event.id,
+                    Alert.alert_type == AlertType.AGENT_RECOMMENDATION,
+                )
+            ).first()
+            if existing is not None:
+                return existing
+
+        severity = _alert_severity(priority_score)
+        if severity is None:
+            return None
+
+        recommended_action = analysis.suggested_action
+        recommended_offer_id = None
+        recommended_offer_name = None
+        if crew_result is not None:
+            recommended_action = crew_result.rm_brief.recommended_action
+            recommended_offer_id = crew_result.offer_strategy.recommended_offer_id
+        elif analysis.financial_options:
+            recommended_offer_id = analysis.financial_options[0].offer_id
+            recommended_offer_name = analysis.financial_options[0].offer_name
+
+        primary_signal = analysis.primary_trigger or "retention review"
+        if crew_result is not None:
+            primary_signal = crew_result.investigation.primary_signal
+
+        message = (
+            f"Customer {customer.customer_id} requires retention review. "
+            f"Primary signal: {primary_signal}. "
+            f"Priority score: {priority_score}. "
+            f"Suggested action: {recommended_action}."
+        )
+
+        alert = Alert(
+            customer_id=customer.customer_id,
+            event_id=event.id if event else None,
+            recommendation_id=recommendation_id,
+            alert_type=AlertType.AGENT_RECOMMENDATION,
+            severity=severity,
+            title="Customer retention action recommended",
+            message=message,
+            assigned_rm_id=customer.assigned_rm_id,
+            assigned_rm_email=customer.assigned_rm_email,
+            priority_score=priority_score,
+            recommended_action=recommended_action,
+            recommended_offer_id=recommended_offer_id,
+            notification_status=NotificationStatus.PENDING,
+            acknowledged=False,
+        )
+        self.session.add(alert)
+        self.session.flush()
+        write_audit_log(
+            self.session,
+            entity_type="alerts",
+            entity_id=alert.id,
+            action="AGENT_ALERT_CREATED",
+            actor_type="RETENTION_FLOW",
+            actor_id=recommendation_id,
+            details={
+                "customer_id": customer.customer_id,
+                "priority_score": priority_score,
+                "recommended_offer": recommended_offer_name,
+            },
+        )
+        return alert
+
     def get_alert(self, alert_id: str) -> AlertDetail:
         """Return alert detail or raise when missing."""
         alert = self.session.get(Alert, alert_id)

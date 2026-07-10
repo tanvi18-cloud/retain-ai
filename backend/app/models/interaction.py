@@ -1,5 +1,7 @@
 """Relationship manager interaction records."""
 
+from datetime import date
+
 from sqlmodel import Field, SQLModel
 
 from app.models.base import CreatedAtMixin, new_uuid
@@ -28,3 +30,6 @@ class Interaction(CreatedAtMixin, SQLModel, table=True):
     notes: str | None = Field(default=None, max_length=2048, nullable=True)
     offer_presented: bool = Field(default=False, nullable=False)
     customer_response: str | None = Field(default=None, max_length=512, nullable=True)
+    contact_channel: str | None = Field(default=None, max_length=32, nullable=True)
+    follow_up_date: date | None = Field(default=None, nullable=True)
+    idempotency_key: str | None = Field(default=None, max_length=128, nullable=True, index=True)

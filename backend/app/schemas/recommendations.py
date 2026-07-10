@@ -1,17 +1,19 @@
-"""Recommendation API schemas."""
+"""Recommendation read API schemas."""
 
 from datetime import datetime
 from typing import Any
 
 from pydantic import Field, field_validator
 
-from app.models.enums import RecommendationDecision, RecommendationStatus
+from app.core.policy_rules import ELIGIBILITY_DISCLAIMER
+from app.models.enums import CreatedByMode, RecommendationDecision, RecommendationStatus
 from app.schemas.common import (
     APIModel,
     validate_confidence,
     validate_non_negative_amount,
     validate_score,
 )
+from app.schemas.interactions import InteractionDetail
 
 
 class RecommendationCreate(APIModel):
@@ -78,6 +80,7 @@ class RecommendationDetail(APIModel):
     recommendation_id: str
     customer_id: str
     triggering_event_id: str | None
+    analysis_execution_id: str | None = None
     churn_score: float
     value_score: float
     priority_score: float
@@ -88,7 +91,16 @@ class RecommendationDetail(APIModel):
     expected_net_benefit: float
     confidence: float
     summary: str
+    investigation_summary: str | None = None
     evidence_json: dict[str, Any]
+    rm_brief_json: dict[str, Any] = Field(default_factory=dict)
+    policy_warnings_json: list[str] = Field(default_factory=list)
+    validation_warnings_json: list[str] = Field(default_factory=list)
+    created_by_mode: CreatedByMode = CreatedByMode.RULES_ONLY
+    calculation_version: str | None = None
+    policy_version: str | None = None
+    eligibility_disclaimer: str = ELIGIBILITY_DISCLAIMER
     status: RecommendationStatus
     created_at: datetime
     updated_at: datetime
+    interactions: list[InteractionDetail] = Field(default_factory=list)

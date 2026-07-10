@@ -15,6 +15,7 @@ from app.core.database import configure_engine, init_db
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import configure_logging, get_logger
 from app.schemas.health import HealthResponse
+from app.services.analysis_runner import set_websocket_manager
 from app.services.event_processor import create_async_processor
 from app.services.event_queue import EventQueue
 from app.services.websocket_manager import WebSocketManager
@@ -37,6 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("database_initialized", database_url=settings.database_url)
 
     websocket_manager = WebSocketManager()
+    set_websocket_manager(websocket_manager)
     event_queue = EventQueue(settings)
     event_queue.set_processor_factory(lambda: create_async_processor(settings, websocket_manager))
     app.state.websocket_manager = websocket_manager
@@ -47,6 +49,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
     await event_queue.shutdown()
+    set_websocket_manager(None)
     await websocket_manager.disconnect_all()
     logger.info(
         "application_shutdown",

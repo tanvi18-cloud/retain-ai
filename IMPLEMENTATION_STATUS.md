@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-**Phase 4 — LLM and agent foundation (complete)**
+**Phase 5 — Agentic recommendation workflow (complete)**
 
-Qwen configuration, mock LLM mode, shared LLM factory, read-only CrewAI tools, structured Pydantic agent outputs, four specialist agents, policy validation, and LLM status API are implemented with full test coverage.
+Sequential CrewAI crew execution, Retention Flow orchestration with deterministic priority routing, analysis execution tracking, recommendation persistence, final policy validation, AGENT_RECOMMENDATION alerts, WebSocket/email notifications, RM recommendation actions, and analysis/recommendation APIs are implemented with full test coverage.
 
 ## Completed Work
 
@@ -47,13 +47,25 @@ Qwen configuration, mock LLM mode, shared LLM factory, read-only CrewAI tools, s
   - Offer Strategy Specialist
   - RM Copilot
 - [x] `GET /api/v1/system/llm-status` (safe, no credential exposure)
-- [x] Comprehensive tests (223 tests passing)
-- [x] README LLM and agent documentation
+
+### Phase 5
+
+- [x] `AnalysisExecution` model and lifecycle service
+- [x] Sequential four-agent `RetentionCrew` with mock and Qwen modes
+- [x] `RetentionFlowRunner` with priority routing (NO_ACTION / MONITOR / full Crew)
+- [x] Final policy validation against deterministic analysis
+- [x] Recommendation persistence with event and execution linkage + idempotency
+- [x] Event processor integration (Flow replaces rules-only-only path)
+- [x] `AGENT_RECOMMENDATION` alerts and safe WebSocket/email notifications
+- [x] RM recommendation actions (review, approve, reject, contacted, close)
+- [x] Analysis APIs: `POST /api/v1/analysis/{customer_id}`, execution polling/list
+- [x] Recommendation action APIs and expanded detail response
+- [x] Configuration: `PERSIST_NO_ACTION_RECOMMENDATIONS`, `RUN_FULL_CREW_MIN_PRIORITY`, `CREATE_ALERT_MIN_PRIORITY`, `SEND_EMAIL_MIN_PRIORITY`
+- [x] Comprehensive tests (277 tests passing)
+- [x] README workflow documentation with Mermaid diagrams
 
 ### Not yet started
 
-- [ ] CrewAI Crew/Flow orchestration (Prompt 10)
-- [ ] Agentic recommendation persistence and event linkage
 - [ ] Copilot chat REST endpoints
 - [ ] Frontend portfolio, alerts, and copilot views
 - [ ] Docker deployment
@@ -73,6 +85,7 @@ uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 curl http://localhost:8000/api/v1/system/llm-status
 curl http://localhost:8000/api/v1/customers/C001/360
 curl -X POST http://localhost:8000/api/v1/analysis/C001/rules-only
+curl -X POST http://localhost:8000/api/v1/analysis/C001 -H "Content-Type: application/json" -d '{"notifications_enabled": false}'
 curl http://localhost:8000/api/v1/system/queue-status
 ```
 
@@ -81,10 +94,19 @@ curl http://localhost:8000/api/v1/system/queue-status
 ```bash
 cd backend
 uv run python -c "
-from app.agents.signal_investigator import run_signal_investigator
-from app.agents.retention_decision_agent import run_retention_decision
-print(run_signal_investigator('C001').primary_signal)
-print(run_retention_decision('C001').deterministic_decision)
+from app.flows.retention_flow import run_retention_flow
+from app.services.analysis_execution_service import AnalysisExecutionService
+from sqlmodel import Session
+from app.core.database import configure_engine, init_db
+from app.core.config import get_settings
+settings = get_settings()
+configure_engine(settings.database_url)
+init_db()
+with Session(configure_engine(settings.database_url)) as s:
+    ex = AnalysisExecutionService(s).create_execution(customer_id='C001', mode='AGENTIC')
+    s.commit()
+    result = run_retention_flow(s, execution_id=ex.id, customer_id='C001', settings=settings)
+    print(result.decision, result.priority_score, result.recommendation_id)
 "
 ```
 
@@ -102,24 +124,18 @@ npm run build
 |-------|----------|-------|
 | Seed not auto-loaded on API startup | Low | Run `scripts/reset_database.py --reset` before testing API |
 | asyncio.Queue is non-durable | Expected MVP | Events in queue are lost on process stop |
-| Crew/Flow orchestration not yet wired | Expected | Individual agents callable; full pipeline in next phase |
-| Recommendations list empty until persistence phase | Expected | Agent outputs not persisted yet |
+| Manual analysis notifications require app WebSocket manager | Low | Event path delivers notifications post-commit; manual API uses background runner |
 | Docker services empty | Expected | Dockerfiles added in a later phase |
 
 ## Next Recommended Prompt
 
-Use this prompt to begin **Phase 5 — CrewAI Crew/Flow orchestration**:
+Use this prompt to begin **Phase 6 — Copilot chat and frontend integration**:
 
----
-
-**Phase 5 — CrewAI Crew/Flow orchestration (Prompt 10)**
-
-1. Create CrewAI Crew and Flow wiring the four specialist agents in sequence.
-2. Persist agentic recommendations linked to events and alerts.
-3. Replace or augment rules-preview alerts with final agentic outputs where appropriate.
-4. Add copilot chat endpoints grounded in Customer 360 and approved offers.
-5. Add tests for full flow, persistence, and idempotency.
-6. Update `IMPLEMENTATION_STATUS.md` when tests pass.
+1. Add copilot chat REST endpoints grounded in Customer 360 and approved offers.
+2. Build frontend portfolio, alerts, and copilot views consuming analysis and recommendation APIs.
+3. Wire WebSocket alert UI to `AGENT_RECOMMENDATION` payloads.
+4. Add Docker deployment configuration.
+5. Update `IMPLEMENTATION_STATUS.md` when tests pass.
 
 Follow all rules in `PROJECT_REQUIREMENTS.md`.
 

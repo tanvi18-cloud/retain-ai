@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     agent_max_iterations: int = Field(default=4, alias="AGENT_MAX_ITERATIONS")
     agent_verbose: bool = Field(default=False, alias="AGENT_VERBOSE")
 
+    persist_no_action_recommendations: bool = Field(
+        default=True,
+        alias="PERSIST_NO_ACTION_RECOMMENDATIONS",
+    )
+    run_full_crew_min_priority: int = Field(default=50, alias="RUN_FULL_CREW_MIN_PRIORITY")
+    create_alert_min_priority: int = Field(default=50, alias="CREATE_ALERT_MIN_PRIORITY")
+    send_email_min_priority: int = Field(default=70, alias="SEND_EMAIL_MIN_PRIORITY")
+
     smtp_host: str = Field(default="localhost", alias="SMTP_HOST")
     smtp_port: int = Field(default=1025, alias="SMTP_PORT")
     smtp_username: str = Field(default="", alias="SMTP_USERNAME")

@@ -100,3 +100,27 @@ class FreshnessStatus(StrEnum):
     FRESH = "FRESH"
     STALE = "STALE"
     MISSING = "MISSING"
+
+
+class AnalysisExecutionMode(StrEnum):
+    """Analysis execution mode."""
+
+    RULES_ONLY = "RULES_ONLY"
+    AGENTIC = "AGENTIC"
+
+
+class AnalysisExecutionStatus(StrEnum):
+    """Analysis execution lifecycle status."""
+
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class CreatedByMode(StrEnum):
+    """Origin mode for a persisted recommendation."""
+
+    MOCK = "MOCK"
+    QWEN = "QWEN"
+    RULES_ONLY = "RULES_ONLY"
