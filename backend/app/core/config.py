@@ -1,0 +1,58 @@
+"""Application configuration loaded from environment variables."""
+
+from functools import lru_cache
+from pathlib import Path
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app import __version__
+
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+REPO_ROOT = BACKEND_DIR.parent
+
+
+class Settings(BaseSettings):
+    """RetainAI backend settings sourced from environment or .env files."""
+
+    model_config = SettingsConfigDict(
+        env_file=(REPO_ROOT / ".env", BACKEND_DIR / ".env"),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    app_name: str = Field(default="RetainAI", alias="APP_NAME")
+    app_env: str = Field(default="development", alias="APP_ENV")
+    debug: bool = Field(default=False, alias="DEBUG")
+    api_host: str = Field(default="0.0.0.0", alias="API_HOST")
+    api_port: int = Field(default=8000, alias="API_PORT")
+    database_url: str = Field(default="sqlite:///./retain_ai.db", alias="DATABASE_URL")
+    frontend_origin: str = Field(default="http://localhost:5173", alias="FRONTEND_ORIGIN")
+
+    mock_llm_mode: bool = Field(default=True, alias="MOCK_LLM_MODE")
+    qwen_base_url: str = Field(default="http://localhost:9000/v1", alias="QWEN_BASE_URL")
+    qwen_api_key: str = Field(default="not-required-for-local", alias="QWEN_API_KEY")
+    qwen_model: str = Field(default="Qwen/Qwen3-8B", alias="QWEN_MODEL")
+
+    smtp_host: str = Field(default="localhost", alias="SMTP_HOST")
+    smtp_port: int = Field(default=1025, alias="SMTP_PORT")
+    smtp_username: str = Field(default="", alias="SMTP_USERNAME")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from: str = Field(default="retainai@example.local", alias="SMTP_FROM")
+    rm_email: str = Field(default="rm@example.local", alias="RM_EMAIL")
+
+    alert_priority_threshold: int = Field(default=70, alias="ALERT_PRIORITY_THRESHOLD")
+    review_priority_threshold: int = Field(default=50, alias="REVIEW_PRIORITY_THRESHOLD")
+    queue_worker_count: int = Field(default=1, alias="QUEUE_WORKER_COUNT")
+
+    @property
+    def api_version(self) -> str:
+        """Application version exposed via health and OpenAPI metadata."""
+        return __version__
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Return cached application settings."""
+    return Settings()

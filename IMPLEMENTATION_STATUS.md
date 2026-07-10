@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-**Phase 1 — Monorepo scaffold**
+**Phase 1 — Backend foundation (partial)**
 
-Backend and frontend project structures are in place with dependencies installed. No business logic, API routes, or database models yet.
+Basic FastAPI application with configuration, structured logging, health endpoints, and tests is complete. Database models and seed data are not yet implemented.
 
 ## Completed Work
 
@@ -17,7 +17,7 @@ Backend and frontend project structures are in place with dependencies installed
 - [x] Created `.editorconfig` for consistent formatting
 - [x] Created `README.md` with title, problem statement, and architecture summary
 
-### Phase 1 (in progress)
+### Phase 1
 
 - [x] Monorepo layout: `backend/`, `frontend/`, `scripts/`, `docs/`, `docker/`
 - [x] Root `.env.example` with all required environment variables
@@ -26,71 +26,78 @@ Backend and frontend project structures are in place with dependencies installed
 - [x] Backend package scaffold: `app/{api,models,schemas,services,agents,crews,flows,tools,core,seed}` + `tests/`
 - [x] Backend `uv.lock` generated; `uv sync --all-groups` succeeds
 - [x] Frontend Vite React TypeScript app with strict TypeScript
-- [x] Frontend deps: react-router-dom, TanStack Query, Recharts, Lucide, Sonner, clsx, tailwind-merge, Tailwind v4
-- [x] Minimal RetainAI landing page replacing default Vite screen
-- [x] `npm install` and `npm run build` succeed
-- [x] Updated root `README.md` setup sections
+- [x] Frontend deps installed; `npm run build` succeeds
+- [x] `app/core/config.py` — Pydantic Settings from root or backend `.env`
+- [x] `app/core/logging.py` — structlog configuration
+- [x] `app/main.py` — FastAPI app with CORS, lifespan, global exception handler
+- [x] `app/api/router.py` — central API router
+- [x] `GET /health` and `GET /api/v1/health` with stable response shape
+- [x] pytest tests for health endpoints and settings
+- [x] `backend/Makefile` with run, test, lint, format targets
 
 ### Not yet started (Phase 1 remainder)
 
-- [ ] `app/main.py` with health check route
-- [ ] `app/core/config.py` (Pydantic Settings)
 - [ ] `app/core/db.py` (SQLModel + SQLite)
-- [ ] Synthetic seed data models
-- [ ] pytest for health endpoint and settings
+- [ ] Synthetic seed data models (`Customer`, `Account`, `Interaction`)
+- [ ] Seed data loader
 
 ## Validation Commands
 
-### Monorepo scaffold (current)
+### Backend application (current)
 
 ```bash
-# Backend — dependency resolution
 cd backend
 uv sync --all-groups
 uv run ruff check .
-
-# Frontend — install and build
-cd frontend
-npm install
-npm run build
-```
-
-### After backend foundation is added
-
-```bash
-cd backend
 uv run pytest
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 curl http://localhost:8000/health
+curl http://localhost:8000/api/v1/health
+```
+
+Or with Make:
+
+```bash
+cd backend
+make lint
+make test
+make run
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run build
 ```
 
 ## Known Issues
 
 | Issue | Severity | Notes |
 |-------|----------|-------|
-| No API server yet | Expected | `app/main.py` not implemented |
+| No database layer yet | Expected | `app/core/db.py` not implemented |
 | Python 3.13 used locally | Low | `requires-python = ">=3.11"`; pin 3.11 in CI if needed |
 | Docker services empty | Expected | Dockerfiles added in a later phase |
-| CrewAI pulls large transitive deps | Low | Normal for crewai 0.203.x; no agent code yet |
+| Make unavailable on some Windows shells | Low | Use documented `uv run` commands instead |
 
 ## Next Recommended Prompt
 
-Use this prompt to complete **Phase 1 — Backend foundation**:
+Use this prompt to complete **Phase 1 — Database and seed data**:
 
 ---
 
-**Phase 1 — Backend foundation (continued)**
+**Phase 1 — Database and seed data**
 
-Implement the backend application shell:
+Add persistence and synthetic data:
 
-1. Add `app/core/config.py` — Pydantic Settings loading from `.env` (all variables in `.env.example`).
-2. Add `app/core/db.py` — SQLModel engine and session dependency for SQLite.
-3. Add `app/main.py` — FastAPI app with CORS, `GET /health`, and lifespan hook placeholder.
-4. Add synthetic SQLModel models in `app/models/`: `Customer`, `Account`, `Interaction` (no real PII).
-5. Add `app/seed/` loader for synthetic demo data.
-6. Add pytest tests: settings load, health endpoint returns 200.
-7. Update `IMPLEMENTATION_STATUS.md` and mark Phase 1 complete when tests pass.
+1. Add `app/core/db.py` — SQLModel engine, session factory, and FastAPI dependency.
+2. Add SQLModel models in `app/models/`: `Customer`, `Account`, `Interaction` (synthetic data only).
+3. Add `app/seed/` loader to populate demo records on startup (configurable).
+4. Wire database initialization into the application lifespan.
+5. Add pytest tests for model creation and seed loading.
+6. Update `IMPLEMENTATION_STATUS.md` and mark Phase 1 complete when tests pass.
 
-Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI agents, WebSockets, or frontend routes yet.
+Follow all rules in `PROJECT_REQUIREMENTS.md`. Do not add CrewAI agents or WebSockets yet.
 
 ---

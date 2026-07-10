@@ -66,9 +66,17 @@ See [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md) for the full requiremen
 cp .env.example .env
 cd backend
 uv sync --all-groups
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-See [backend/README.md](./backend/README.md) for package layout and commands.
+Health checks:
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/api/v1/health
+```
+
+See [backend/README.md](./backend/README.md) for package layout and Makefile commands.
 
 ## Frontend Setup
 
@@ -104,7 +112,7 @@ Full list: [.env.example](./.env.example)
 ## Running Tests
 
 ```bash
-# Backend (once tests are implemented)
+# Backend
 cd backend
 uv run pytest
 
@@ -116,10 +124,10 @@ npm run build
 ## Development Workflow
 
 1. Copy `.env.example` to `.env` at the repo root.
-2. Start the backend API (once `app/main.py` exists): `cd backend && uv run uvicorn app.main:app --reload`
+2. Start the backend API: `cd backend && uv run uvicorn app.main:app --reload` (or `make run`)
 3. Start the frontend: `cd frontend && npm run dev`
 4. Run lint before committing:
-   - Backend: `cd backend && uv run ruff check .`
+   - Backend: `cd backend && uv run ruff check .` (or `make lint`)
    - Frontend: `cd frontend && npm run lint`
 
 ## License
