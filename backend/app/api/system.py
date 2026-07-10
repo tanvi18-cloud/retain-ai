@@ -5,7 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 
 from app.core.config import Settings, get_settings
+from app.core.llm import get_llm_status
 from app.schemas.alerts import NotificationStatusResponse, QueueStatusResponse
+from app.schemas.llm import LLMStatus
 from app.services.event_queue import EventQueue
 from app.services.websocket_manager import WebSocketManager
 
@@ -61,3 +63,15 @@ def get_notification_status(
         websocket_connections=manager.connection_count,
         alert_priority_threshold=settings.alert_priority_threshold,
     )
+
+
+@router.get(
+    "/llm-status",
+    response_model=LLMStatus,
+    summary="Get LLM status",
+)
+def get_llm_status_endpoint(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> LLMStatus:
+    """Return safe LLM subsystem status without exposing credentials."""
+    return get_llm_status(settings)

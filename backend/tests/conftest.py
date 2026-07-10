@@ -11,7 +11,7 @@ from app.core.database import configure_engine, init_db, reset_engine
 from app.main import create_app
 from app.seed.seed_database import seed_database
 
-pytest_plugins = ["tests.conftest_repositories"]
+pytest_plugins = ["tests.conftest_repositories", "tests.conftest_agents"]
 
 
 @pytest.fixture

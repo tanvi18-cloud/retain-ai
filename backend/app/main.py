@@ -38,9 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     websocket_manager = WebSocketManager()
     event_queue = EventQueue(settings)
-    event_queue.set_processor_factory(
-        lambda: create_async_processor(settings, websocket_manager)
-    )
+    event_queue.set_processor_factory(lambda: create_async_processor(settings, websocket_manager))
     app.state.websocket_manager = websocket_manager
     app.state.event_queue = event_queue
     await event_queue.start_workers()

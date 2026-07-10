@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     qwen_base_url: str = Field(default="http://localhost:9000/v1", alias="QWEN_BASE_URL")
     qwen_api_key: str = Field(default="not-required-for-local", alias="QWEN_API_KEY")
     qwen_model: str = Field(default="Qwen/Qwen3-8B", alias="QWEN_MODEL")
+    qwen_temperature: float = Field(default=0.1, alias="QWEN_TEMPERATURE")
+    qwen_timeout_seconds: int = Field(default=60, alias="QWEN_TIMEOUT_SECONDS")
+    qwen_max_retries: int = Field(default=2, alias="QWEN_MAX_RETRIES")
+    agent_max_iterations: int = Field(default=4, alias="AGENT_MAX_ITERATIONS")
+    agent_verbose: bool = Field(default=False, alias="AGENT_VERBOSE")
 
     smtp_host: str = Field(default="localhost", alias="SMTP_HOST")
     smtp_port: int = Field(default=1025, alias="SMTP_PORT")

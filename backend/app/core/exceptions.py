@@ -128,3 +128,39 @@ class UnsupportedEventTypeError(DomainError):
             details=details,
             status_code=422,
         )
+
+
+class LLMConfigurationError(DomainError):
+    """Raised when LLM configuration is invalid."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="LLM_CONFIGURATION_ERROR",
+            message=message,
+            details=details,
+            status_code=500,
+        )
+
+
+class AgentExecutionError(DomainError):
+    """Raised when an agent fails to produce valid structured output."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="AGENT_EXECUTION_ERROR",
+            message=message,
+            details=details,
+            status_code=502,
+        )
+
+
+class AgentValidationFailedError(DomainError):
+    """Raised when agent output fails policy validation."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="AGENT_VALIDATION_FAILED",
+            message=message,
+            details=details,
+            status_code=422,
+        )

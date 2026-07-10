@@ -111,6 +111,9 @@ Key variables:
 | `EVENT_MAX_RETRIES` | Maximum retries for failed events |
 | `EMAIL_NOTIFICATIONS_ENABLED` | Enable SMTP alert emails |
 | `WEBSOCKET_HEARTBEAT_SECONDS` | WebSocket heartbeat interval |
+| `MOCK_LLM_MODE` | Run agents without a live LLM (`true` for local dev) |
+| `QWEN_*` | OpenAI-compatible Qwen endpoint settings |
+| `AGENT_MAX_ITERATIONS` | Maximum CrewAI agent iterations (default 4) |
 | `CHURN_PRIORITY_WEIGHT` | Weight for churn score in priority formula (default 0.55) |
 | `VALUE_PRIORITY_WEIGHT` | Weight for value score in priority formula (default 0.45) |
 | `DECISION_MONITOR_THRESHOLD` | Minimum priority score for MONITOR decision (default 30) |
@@ -415,7 +418,52 @@ SMTP failures are logged and do **not** fail event processing. Check safe config
 ```bash
 curl http://localhost:8000/api/v1/system/notification-status
 curl http://localhost:8000/api/v1/system/queue-status
+curl http://localhost:8000/api/v1/system/llm-status
 ```
+
+## LLM and Agent Foundation
+
+RetainAI agents provide **decision support only**. They do not control eligibility, scoring, or offer approval. Deterministic services remain authoritative.
+
+### Mock mode (default)
+
+```env
+MOCK_LLM_MODE=true
+QWEN_BASE_URL=http://localhost:9000/v1
+QWEN_API_KEY=not-required-for-local
+QWEN_MODEL=Qwen/Qwen3-8B
+```
+
+With `MOCK_LLM_MODE=true`:
+
+- No external network calls occur
+- All four agents return deterministic, schema-valid outputs for seeded customers C001–C010
+- Full test suite runs without a live Qwen endpoint
+
+Real Qwen is **optional** for MVP development. Mock mode remains fully functional.
+
+### Local Qwen mode
+
+Set `MOCK_LLM_MODE=false` and run an OpenAI-compatible Qwen endpoint (for example on port 9000). CrewAI connects via `QWEN_BASE_URL` using low temperature (`QWEN_TEMPERATURE=0.1`), timeouts, and limited retries.
+
+**Important:** Do not send real customer data to external endpoints. RetainAI uses synthetic data only.
+
+### Agent responsibilities
+
+| Agent | Purpose | Tools |
+|-------|---------|-------|
+| Signal Investigator | Identify primary retention signal and evidence | Customer 360, scores, interactions |
+| Retention Decision | Explain deterministic decision and urgency | Customer 360, scores, interactions |
+| Offer Strategy | Select best eligible offer discussion option | Customer 360, scores, eligible offers, financial options |
+| RM Copilot | Produce RM-ready retention brief | Customer 360, scores, offers, interactions, financial options |
+
+### Structured outputs and guardrails
+
+All agent responses validate against Pydantic schemas in `app/schemas/agent_outputs.py`. Post-generation validation enforces: no score changes, eligible offers only, no approval claims, required disclaimers.
+
+Shared policy in `app/core/agent_policy.py` requires agents to use tool data only, never invent financial values, and never promise approval or guaranteed revenue.
+
+CrewAI Crew/Flow orchestration will be added in a later phase. Individual agents are callable via `run_signal_investigator`, `run_retention_decision`, `run_offer_strategy`, and `run_rm_copilot`.
 
 ## Running Tests
 
