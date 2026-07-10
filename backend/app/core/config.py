@@ -54,6 +54,10 @@ class Settings(BaseSettings):
         alias="TRANSACTION_FEATURE_STALE_HOURS",
     )
 
+    churn_priority_weight: float = Field(default=0.55, alias="CHURN_PRIORITY_WEIGHT")
+    value_priority_weight: float = Field(default=0.45, alias="VALUE_PRIORITY_WEIGHT")
+    decision_monitor_threshold: int = Field(default=30, alias="DECISION_MONITOR_THRESHOLD")
+
     @property
     def api_version(self) -> str:
         """Application version exposed via health and OpenAPI metadata."""

@@ -89,9 +89,7 @@ def test_c001_has_high_severity_home_loan_trigger(seeded_db: Session) -> None:
 
 def test_c004_has_max_dpd_60(seeded_db: Session) -> None:
     """C004 credit profile reflects 60 days past due."""
-    profile = seeded_db.exec(
-        select(CreditProfile).where(CreditProfile.customer_id == "C004")
-    ).one()
+    profile = seeded_db.exec(select(CreditProfile).where(CreditProfile.customer_id == "C004")).one()
 
     assert profile.max_dpd_12m == 60
 

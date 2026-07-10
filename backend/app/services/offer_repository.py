@@ -72,3 +72,9 @@ class OfferRepository:
             page=page,
             page_size=page_size,
         )
+
+    def list_all_active(self) -> list[OfferDetail]:
+        """Return all active offers ordered by offer ID."""
+        statement = select(Offer).where(Offer.active.is_(True)).order_by(Offer.offer_id)
+        offers = self.session.exec(statement).all()
+        return [_to_detail(offer) for offer in offers]

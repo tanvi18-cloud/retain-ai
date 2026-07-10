@@ -31,9 +31,7 @@ class TransactionFeatureRepository:
 
     def get_by_customer(self, customer_id: str) -> TransactionFeatureDetail | None:
         """Return transaction features for a customer when present."""
-        statement = select(TransactionFeature).where(
-            TransactionFeature.customer_id == customer_id
-        )
+        statement = select(TransactionFeature).where(TransactionFeature.customer_id == customer_id)
         feature = self.session.exec(statement).first()
         if feature is None:
             return None

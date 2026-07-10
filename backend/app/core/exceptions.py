@@ -56,3 +56,51 @@ class RepositoryError(DomainError):
             details=details,
             status_code=500,
         )
+
+
+class InvalidScoreInputError(DomainError):
+    """Raised when scoring inputs are invalid."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="INVALID_SCORE_INPUT",
+            message=message,
+            details=details,
+            status_code=400,
+        )
+
+
+class InvalidFinancialInputError(DomainError):
+    """Raised when financial calculation inputs are invalid."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="INVALID_FINANCIAL_INPUT",
+            message=message,
+            details=details,
+            status_code=400,
+        )
+
+
+class UnsupportedSortFieldError(DomainError):
+    """Raised when an unsupported sort field is requested."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="UNSUPPORTED_SORT_FIELD",
+            message=message,
+            details=details,
+            status_code=400,
+        )
+
+
+class UnsupportedFilterError(DomainError):
+    """Raised when an unsupported filter value is requested."""
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
+        super().__init__(
+            code="UNSUPPORTED_FILTER",
+            message=message,
+            details=details,
+            status_code=400,
+        )

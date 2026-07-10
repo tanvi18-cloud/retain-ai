@@ -218,9 +218,7 @@ def load_seed_payloads() -> dict[str, Any]:
             "core_banking": SeedMetadata.model_validate(core_banking["metadata"]),
             "credit_profiles": SeedMetadata.model_validate(credit_profiles["metadata"]),
             "bureau_triggers": SeedMetadata.model_validate(bureau_triggers["metadata"]),
-            "transaction_features": SeedMetadata.model_validate(
-                transaction_features["metadata"]
-            ),
+            "transaction_features": SeedMetadata.model_validate(transaction_features["metadata"]),
             "offers": SeedMetadata.model_validate(offers["metadata"]),
             "interactions": SeedMetadata.model_validate(interactions["metadata"]),
         },

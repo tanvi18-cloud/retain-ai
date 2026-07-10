@@ -72,6 +72,16 @@ class AlertRepository:
             page_size=page_size,
         )
 
+    def count_all(self) -> int:
+        """Return total alert count."""
+        statement = select(Alert)
+        return count_query(self.session, statement)
+
+    def count_unacknowledged(self) -> int:
+        """Return count of unacknowledged alerts."""
+        statement = select(Alert).where(Alert.acknowledged.is_(False))
+        return count_query(self.session, statement)
+
     def list_unacknowledged(
         self,
         *,
@@ -81,9 +91,7 @@ class AlertRepository:
         """Return paginated alerts that have not been acknowledged."""
         validate_pagination(page, page_size)
         statement = (
-            select(Alert)
-            .where(Alert.acknowledged.is_(False))
-            .order_by(Alert.created_at.desc())
+            select(Alert).where(Alert.acknowledged.is_(False)).order_by(Alert.created_at.desc())
         )
         total = count_query(self.session, statement)
         alerts = self.session.exec(

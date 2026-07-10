@@ -1,13 +1,18 @@
 """Recommendation persistence operations."""
 
+from typing import Literal
+
 from sqlmodel import Session, select
 
-from app.core.exceptions import ResourceNotFoundError
+from app.core.exceptions import ResourceNotFoundError, UnsupportedSortFieldError
 from app.models.enums import RecommendationDecision, RecommendationStatus
 from app.models.recommendation import Recommendation
 from app.schemas.common import PaginatedResponse
 from app.schemas.recommendations import RecommendationDetail, RecommendationSummary
 from app.services.repository_utils import count_query, paginate_offset, validate_pagination
+
+RecommendationSortField = Literal["created_at", "priority_score"]
+SortOrder = Literal["asc", "desc"]
 
 
 def _to_summary(recommendation: Recommendation) -> RecommendationSummary:
@@ -118,16 +123,35 @@ class RecommendationRepository:
         *,
         page: int = 1,
         page_size: int = 20,
+        customer_id: str | None = None,
         status: RecommendationStatus | None = None,
         decision: RecommendationDecision | None = None,
+        minimum_priority: float | None = None,
+        sort_by: RecommendationSortField = "created_at",
+        sort_order: SortOrder = "desc",
     ) -> PaginatedResponse[RecommendationSummary]:
         """Return paginated recommendations with optional filters."""
         validate_pagination(page, page_size)
-        statement = select(Recommendation).order_by(Recommendation.priority_score.desc())
+        if sort_by == "created_at":
+            order_column = Recommendation.created_at
+        elif sort_by == "priority_score":
+            order_column = Recommendation.priority_score
+        else:
+            raise UnsupportedSortFieldError(
+                message=f"Unsupported sort field: {sort_by}",
+                details={"sort_by": sort_by},
+            )
+
+        order_expression = order_column.asc() if sort_order == "asc" else order_column.desc()
+        statement = select(Recommendation).order_by(order_expression)
+        if customer_id is not None:
+            statement = statement.where(Recommendation.customer_id == customer_id)
         if status is not None:
             statement = statement.where(Recommendation.status == status)
         if decision is not None:
             statement = statement.where(Recommendation.decision == decision)
+        if minimum_priority is not None:
+            statement = statement.where(Recommendation.priority_score >= minimum_priority)
         total = count_query(self.session, statement)
         recommendations = self.session.exec(
             statement.offset(paginate_offset(page, page_size)).limit(page_size)

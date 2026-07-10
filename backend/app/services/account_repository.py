@@ -30,9 +30,7 @@ class AccountRepository:
     def list_by_customer(self, customer_id: str) -> list[AccountDetail]:
         """Return all accounts for a customer ordered by account type."""
         statement = (
-            select(Account)
-            .where(Account.customer_id == customer_id)
-            .order_by(Account.account_type)
+            select(Account).where(Account.customer_id == customer_id).order_by(Account.account_type)
         )
         accounts = self.session.exec(statement).all()
         return [_to_detail(account) for account in accounts]

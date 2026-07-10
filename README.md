@@ -106,6 +106,9 @@ Key variables:
 | `QWEN_*` | OpenAI-compatible Qwen endpoint settings |
 | `SMTP_*` | Development email (e.g. Mailhog on port 1025) |
 | `ALERT_PRIORITY_THRESHOLD` | Score threshold for high-priority alerts |
+| `CHURN_PRIORITY_WEIGHT` | Weight for churn score in priority formula (default 0.55) |
+| `VALUE_PRIORITY_WEIGHT` | Weight for value score in priority formula (default 0.45) |
+| `DECISION_MONITOR_THRESHOLD` | Minimum priority score for MONITOR decision (default 30) |
 
 Full list: [.env.example](./.env.example)
 
@@ -172,6 +175,87 @@ Missing customers return the standard error envelope:
   }
 }
 ```
+
+## Deterministic Decision Engine
+
+The rules-only decision engine computes **explainable, deterministic** retention scores and offer eligibility. These are **demo rules for local development** — they are **not actual bank policy**, and all inputs are **synthetic**.
+
+### Scoring
+
+**Churn risk (0–100)** — sum of triggered rule points, capped at 100. Each triggered rule returns a `RuleContribution` with points, observed value, and source system (`CORE_BANKING`, `CREDIT_BUREAU`, `TRANSACTION_ENGINE`, `CRM`).
+
+Suggested churn bands: 0–29 LOW, 30–49 MEDIUM, 50–69 HIGH, 70–100 CRITICAL.
+
+**Customer value (0–100)** — weighted components:
+
+- Balance and deposit value (max 35)
+- Monthly inflow (max 20)
+- Estimated annual customer value (max 20)
+- Product depth (max 15)
+- Relationship tenure (max 10)
+
+### Priority formula
+
+```text
+priority_score = round((churn_score × CHURN_PRIORITY_WEIGHT) + (value_score × VALUE_PRIORITY_WEIGHT))
+```
+
+Default weights: churn 0.55, value 0.45.
+
+### Action bands
+
+| Priority score | Decision |
+|----------------|----------|
+| 70–100 | RETAIN |
+| 50–69 | REVIEW |
+| 30–49 | MONITOR |
+| below 30 | NO_ACTION |
+
+### Eligibility disclaimer
+
+Offer eligibility indicates an **RM discussion option** and **does not represent final credit or product approval**. This disclaimer is included in eligibility responses.
+
+### Financial formulas (estimates, not guaranteed revenue)
+
+```text
+churn_probability = churn_score / 100
+revenue_at_risk = estimated_annual_value × churn_probability
+expected_gross_retention_value = revenue_at_risk × expected_retention_uplift
+expected_net_benefit = expected_gross_retention_value − estimated_offer_cost
+```
+
+Financial projections are **estimates** based on synthetic data.
+
+### Rules-only analysis API
+
+```bash
+# Synchronous rules-only analysis (no LLM, no persistence)
+curl -X POST http://localhost:8000/api/v1/analysis/C001/rules-only
+```
+
+Returns churn/value/priority scores, eligible and rejected offers, financial options, top risk signals, and a suggested action.
+
+### Portfolio APIs
+
+```bash
+# Portfolio summary across all 10 customers
+curl http://localhost:8000/api/v1/portfolio/summary
+
+# Portfolio customer table (default sort: priority_score desc)
+curl "http://localhost:8000/api/v1/portfolio/customers?page=1&page_size=10"
+
+# Filter by decision or minimum priority
+curl "http://localhost:8000/api/v1/portfolio/customers?decision=RETAIN&minimum_priority=70"
+```
+
+### Recommendation read APIs
+
+```bash
+curl "http://localhost:8000/api/v1/recommendations?page=1&page_size=20"
+curl http://localhost:8000/api/v1/recommendations/{recommendation_id}
+```
+
+These endpoints are read-only until a later phase persists recommendations from the analysis pipeline.
 
 ## Running Tests
 
