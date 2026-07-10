@@ -4,14 +4,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.health import build_health_response
 from app.api.router import api_router
 from app.core.config import Settings, get_settings
+from app.core.database import configure_engine, init_db
+from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import configure_logging, get_logger
 from app.schemas.health import HealthResponse
 
@@ -29,6 +29,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         version=settings.api_version,
         debug=settings.debug,
     )
+    init_db()
+    logger.info("database_initialized", database_url=settings.database_url)
     yield
     logger.info(
         "application_shutdown",
@@ -42,6 +44,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Create and configure the FastAPI application."""
     resolved_settings = settings or get_settings()
     configure_logging(debug=resolved_settings.debug)
+    configure_engine(resolved_settings.database_url)
 
     application = FastAPI(
         title=resolved_settings.app_name,
@@ -66,28 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return build_health_response(current_settings)
 
     application.include_router(api_router, prefix="/api/v1")
-
-    @application.exception_handler(Exception)
-    async def unhandled_exception_handler(
-        request: Request,
-        exc: Exception,
-    ) -> JSONResponse:
-        """Log unexpected errors without exposing stack traces to clients."""
-        if isinstance(exc, StarletteHTTPException):
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={"detail": exc.detail},
-            )
-
-        logger.exception(
-            "unhandled_exception",
-            path=str(request.url.path),
-            method=request.method,
-        )
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal server error"},
-        )
+    register_exception_handlers(application)
 
     return application
 
