@@ -82,11 +82,75 @@ See [backend/README.md](./backend/README.md) for package layout and Makefile com
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-The dev server runs at http://localhost:5173. See [frontend/README.md](./frontend/README.md) for details.
+The dev server runs at http://localhost:5173.
+
+### Frontend environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `VITE_API_BASE_URL` | Backend API base URL (default `http://127.0.0.1:8001/api/v1`) |
+| `VITE_APP_NAME` | Application name shown in the shell |
+| `VITE_APP_VERSION` | Version label |
+| `VITE_USE_MOCK_DATA` | Reserved flag for future mock mode (`false` uses live API) |
+
+### Running with backend on port 8001
+
+```bash
+# Terminal 1 — backend
+cd backend
+uv run python ../scripts/reset_database.py --reset
+uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+
+# Terminal 2 — frontend
+cd frontend
+npm run dev
+```
+
+### Available frontend routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Portfolio command center (KPIs, charts, priority table) |
+| `/customers` | Customer directory with search and filters |
+| `/customers/:customerId` | Customer 360, analysis, recommendations, RM actions |
+| `/alerts` | Placeholder (Prompt 13) |
+| `/copilot` | Placeholder (Prompt 13) |
+| `/simulator` | Placeholder (Prompt 13) |
+| `/system` | Placeholder (Prompt 13) |
+
+### Core dashboard features
+
+- Portfolio KPI cards and refresh
+- Risk–value matrix with quadrant summary
+- Action distribution and estimated revenue-by-product charts
+- Priority customer table with URL-driven filters, sort, and pagination
+- Customer 360 with rules-only and full analysis (polling)
+- Recommendation panel and RM workflow actions
+- API connectivity indicator via health check
+- INR and date formatting utilities
+
+### Synthetic data disclaimer
+
+All customer, account, credit, and transaction data shown in the frontend is **synthetic** and intended for local development and RM workflow demonstration only. It must not be used for production credit or product decisions.
+
+### Screenshots
+
+_Screenshots placeholder — add portfolio and Customer 360 captures after running the app locally._
+
+### Frontend validation
+
+```bash
+cd frontend
+npm run build
+npm run test -- --run
+```
+
+See [frontend/README.md](./frontend/README.md) for details.
 
 ## Environment Variables
 
