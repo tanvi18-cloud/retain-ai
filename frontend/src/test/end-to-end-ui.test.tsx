@@ -24,7 +24,7 @@ afterAll(() => server.close())
 describe('Portfolio workflow', () => {
   it('loads dashboard KPIs and opens Customer 360 from priority table', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/' })
+    renderWithProviders(<App />, { route: '/', enableWebSocket: false })
 
     expect(await screen.findByText('Total customers')).toBeInTheDocument()
     expect(screen.getByText('Immediate intervention')).toBeInTheDocument()
@@ -40,7 +40,7 @@ describe('Portfolio workflow', () => {
 describe('Customer analysis workflow', () => {
   it('runs full analysis, polls execution, and shows recommendation actions', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/customers/C001' })
+    renderWithProviders(<App />, { route: '/customers/C001', enableWebSocket: false })
 
     expect(await screen.findByText('Latest recommendation')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Run full analysis' }))
@@ -62,10 +62,14 @@ describe('Alert workflow', () => {
     const successSpy = vi.spyOn(toast, 'success')
     const { resetLiveAlertToastsForTests } = await import('../components/alerts/LiveAlertToast')
     resetLiveAlertToastsForTests()
-    showRetentionAlertToast(mockRetentionAlertWs)
 
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/alerts' })
+    renderWithProviders(<App />, { route: '/alerts', enableWebSocket: false })
+
+    await act(async () => {
+      showRetentionAlertToast(mockRetentionAlertWs)
+    })
+
     expect((await screen.findAllByText('High churn risk — competitor transfer')).length).toBeGreaterThan(0)
 
     await user.click(screen.getAllByRole('button', { name: /^Acknowledge$/i })[0])
@@ -89,7 +93,7 @@ describe('Chat workflow', () => {
     )
 
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/chat' })
+    renderWithProviders(<App />, { route: '/chat', enableWebSocket: false })
 
     const textarea = await screen.findByLabelText('Message')
     await user.type(textarea, 'Why is this customer urgent?')
@@ -111,14 +115,17 @@ describe('Chat workflow', () => {
 describe('Simulator workflow', () => {
   it('submits FD maturity event, polls to completion, and shows completed state', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/simulator' })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTimeAsync })
+    renderWithProviders(<App />, { route: '/simulator', enableWebSocket: false })
 
     await user.selectOptions(await screen.findByLabelText(/^Customer$/i), 'C008')
     await user.selectOptions(screen.getByLabelText(/Event type/i), 'FIXED_DEPOSIT_MATURITY')
     await user.type(screen.getByLabelText(/Maturity date/i), '2026-08-15')
     await user.click(screen.getByRole('button', { name: /Submit event/i }))
-    await vi.advanceTimersByTimeAsync(100)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100)
+    })
 
     expect(await screen.findByText(/Event processing completed/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /view customer/i })).toBeInTheDocument()
@@ -127,7 +134,7 @@ describe('Simulator workflow', () => {
 
 describe('System workflow', () => {
   it('shows API, mock mode, queue, websocket, and email status', async () => {
-    renderWithProviders(<App />, { route: '/system' })
+    renderWithProviders(<App />, { route: '/system', enableWebSocket: false })
     expect(await screen.findByText('MOCK mode')).toBeInTheDocument()
     expect(screen.getByText('Workers')).toBeInTheDocument()
     await waitFor(() => {
@@ -142,7 +149,7 @@ describe('Performance smoke (frontend)', () => {
   it('uses bounded polling for analysis execution', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/customers/C001' })
+    renderWithProviders(<App />, { route: '/customers/C001', enableWebSocket: false })
     await screen.findByText('Latest recommendation')
 
     const pollsBefore = getExecutionPollCount()

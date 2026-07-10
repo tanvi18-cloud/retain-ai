@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { SimulatorPage } from '../pages/SimulatorPage'
@@ -10,9 +10,14 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   resetMockState()
-  vi.useRealTimers()
 })
 afterAll(() => server.close())
+
+async function advancePollingTimers(ms = 100) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms)
+  })
+}
 
 describe('Event simulator', () => {
   it('renders synthetic notice and event form', async () => {
@@ -37,14 +42,15 @@ describe('Event simulator', () => {
 
   it('submits event and polls to completion', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    const user = userEvent.setup()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTimeAsync })
+
     renderWithProviders(<SimulatorPage />, { route: '/simulator' })
 
     await user.click(await screen.findByRole('button', { name: /submit event/i }))
 
     await waitFor(() => expect(screen.getByText(/Event queued for processing/i)).toBeInTheDocument())
 
-    await vi.advanceTimersByTimeAsync(50)
+    await advancePollingTimers(100)
 
     expect(await screen.findByText(/Event processing completed/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /view customer/i })).toHaveAttribute('href', '/customers/C001')
@@ -53,13 +59,14 @@ describe('Event simulator', () => {
   it('shows failed event and offers retry', async () => {
     setFailedEvent()
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    const user = userEvent.setup()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTimeAsync })
+
     renderWithProviders(<SimulatorPage />, { route: '/simulator' })
 
     await user.click(await screen.findByRole('button', { name: /Submit event/i }))
-    await vi.advanceTimersByTimeAsync(100)
+    await advancePollingTimers(100)
 
-    expect(screen.getAllByText('Failed').length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Failed')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Event processing failed safely.').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /Retry event/i })).toBeInTheDocument()
   })

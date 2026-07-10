@@ -17,7 +17,7 @@ afterAll(() => server.close())
 describe('Navigation', () => {
   it('navigates to all primary routes', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<App />, { route: '/' })
+    renderWithProviders(<App />, { route: '/', enableWebSocket: false })
 
     const alertsLinks = screen.getAllByRole('link', { name: /^Alerts$/i })
     await user.click(alertsLinks[0])
@@ -34,12 +34,12 @@ describe('Navigation', () => {
   })
 
   it('redirects /copilot to /chat', async () => {
-    renderWithProviders(<App />, { route: '/copilot' })
+    renderWithProviders(<App />, { route: '/copilot', enableWebSocket: false })
     expect(await screen.findByRole('heading', { level: 2, name: 'RM Copilot' })).toBeInTheDocument()
   })
 
   it('marks active route in sidebar', async () => {
-    renderWithProviders(<App />, { route: '/alerts' })
+    renderWithProviders(<App />, { route: '/alerts', enableWebSocket: false })
     const alertsLink = (await screen.findAllByRole('link', { name: /^Alerts$/i })).find(
       (link) => link.getAttribute('aria-current') === 'page',
     )
@@ -47,7 +47,7 @@ describe('Navigation', () => {
   })
 
   it('shows mobile quick navigation', async () => {
-    renderWithProviders(<App />, { route: '/' })
+    renderWithProviders(<App />, { route: '/', enableWebSocket: false })
     expect(screen.getByRole('navigation', { name: 'Mobile quick navigation' })).toBeInTheDocument()
   })
 })
@@ -59,7 +59,7 @@ describe('Route code splitting', () => {
   })
 
   it('lazy-loads alerts page content', async () => {
-    renderWithProviders(<App />, { route: '/alerts' })
+    renderWithProviders(<App />, { route: '/alerts', enableWebSocket: false })
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 2, name: 'Retention Alerts' })).toBeInTheDocument(),
     )

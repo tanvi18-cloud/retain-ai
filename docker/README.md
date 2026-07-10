@@ -1,11 +1,15 @@
 # Docker
 
-Dockerfiles and container-related assets for RetainAI.
+Docker deployment is configured at the repository root.
 
-## Planned
+See [docs/DOCKER_SETUP.md](../docs/DOCKER_SETUP.md) for prerequisites, commands, and troubleshooting.
 
-- `backend.Dockerfile` — FastAPI application image
-- `frontend.Dockerfile` — Vite production build served via nginx
-- Mailhog or similar for local SMTP testing
+Quick start:
 
-See root `docker-compose.yml` for orchestration (to be implemented in a later phase).
+```bash
+cp .env.example .env
+docker compose build
+docker compose up -d
+```
+
+Services: `backend` (:8000), `frontend` (:8080), `mailpit` (:8025).

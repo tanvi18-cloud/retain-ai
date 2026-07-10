@@ -194,7 +194,7 @@ export const mockCustomer360C004: Customer360 = {
     segment: 'MASS_AFFLUENT',
   },
   credit_profile: {
-    ...mockCustomer360.credit_profile,
+    ...mockCustomer360.credit_profile!,
     customer_id: 'C004',
     credit_score: 610,
     max_dpd_12m: 60,
@@ -213,7 +213,7 @@ export const mockCustomer360C010: Customer360 = {
     segment: 'STANDARD',
   },
   credit_profile: {
-    ...mockCustomer360.credit_profile,
+    ...mockCustomer360.credit_profile!,
     customer_id: 'C010',
     credit_score: 780,
     max_dpd_12m: 0,

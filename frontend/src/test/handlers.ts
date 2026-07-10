@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
+import { alertsWebSocketHandler } from './mswWebSocket'
 import {
   mockAlertDetail,
   mockAlerts,
@@ -37,6 +38,7 @@ let simulateFailedNext = false
 let chatConversationClosed = false
 
 export const server = setupServer(
+  alertsWebSocketHandler,
   http.get(`${API}/health`, () => HttpResponse.json(mockHealth)),
 
   http.get(`${API}/portfolio/summary`, () => HttpResponse.json(mockPortfolioSummary)),

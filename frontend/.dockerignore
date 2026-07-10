@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.git/
+.gitignore
+*.log
+.DS_Store
+Thumbs.db
+src/test/
+*.test.ts
+*.test.tsx
+vite.config.ts.timestamp-*

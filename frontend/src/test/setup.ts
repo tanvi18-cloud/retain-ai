@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest'
+import { cleanup } from '@testing-library/react'
 
 import { resetLiveAlertToastsForTests } from '../components/alerts/LiveAlertToast'
 import { __resetAlertsWebSocketForTests } from '../hooks/useAlertsWebSocket'
@@ -95,7 +96,9 @@ beforeAll(() => {
 })
 
 afterEach(() => {
+  cleanup()
   resetLiveAlertToastsForTests()
   __resetAlertsWebSocketForTests()
   MockWebSocket.reset()
+  vi.useRealTimers()
 })

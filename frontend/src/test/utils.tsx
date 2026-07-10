@@ -20,25 +20,42 @@ interface ProvidersProps {
   route?: string
   routerProps?: MemoryRouterProps
   withRoutes?: boolean
+  /** When false, skip WebSocket provider (e.g. App renders AppShell which includes it). */
+  enableWebSocket?: boolean
+  /** When false, skip Sonner Toaster (rare — most tests need it for toast assertions). */
+  enableToaster?: boolean
 }
 
-function Providers({ children, route = '/', routerProps, withRoutes }: ProvidersProps) {
+function Providers({
+  children,
+  route = '/',
+  routerProps,
+  withRoutes,
+  enableWebSocket = true,
+  enableToaster = true,
+}: ProvidersProps) {
   const client = createTestQueryClient()
+  const routed = (
+    <MemoryRouter initialEntries={[route]} {...routerProps}>
+      {withRoutes ? (
+        <Routes>
+          <Route path="/customers/:customerId" element={children} />
+          <Route path="*" element={children} />
+        </Routes>
+      ) : (
+        children
+      )}
+      {enableToaster ? <Toaster /> : null}
+    </MemoryRouter>
+  )
+
   return (
     <QueryClientProvider client={client}>
-      <AlertsWebSocketProvider>
-        <MemoryRouter initialEntries={[route]} {...routerProps}>
-          {withRoutes ? (
-            <Routes>
-              <Route path="/customers/:customerId" element={children} />
-              <Route path="*" element={children} />
-            </Routes>
-          ) : (
-            children
-          )}
-          <Toaster />
-        </MemoryRouter>
-      </AlertsWebSocketProvider>
+      {enableWebSocket ? (
+        <AlertsWebSocketProvider>{routed}</AlertsWebSocketProvider>
+      ) : (
+        routed
+      )}
     </QueryClientProvider>
   )
 }
@@ -49,12 +66,21 @@ export function renderWithProviders(
     route?: string
     routerProps?: MemoryRouterProps
     withRoutes?: boolean
+    enableWebSocket?: boolean
+    enableToaster?: boolean
   },
 ) {
-  const { route, routerProps, withRoutes, ...renderOptions } = options ?? {}
+  const { route, routerProps, withRoutes, enableWebSocket, enableToaster, ...renderOptions } =
+    options ?? {}
   return render(ui, {
     wrapper: ({ children }) => (
-      <Providers route={route} routerProps={routerProps} withRoutes={withRoutes}>
+      <Providers
+        route={route}
+        routerProps={routerProps}
+        withRoutes={withRoutes}
+        enableWebSocket={enableWebSocket}
+        enableToaster={enableToaster}
+      >
         {children}
       </Providers>
     ),

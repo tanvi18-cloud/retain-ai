@@ -1,28 +1,23 @@
 import { beforeAll, afterAll, afterEach, describe, expect, it, vi } from 'vitest'
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { toast } from 'sonner'
 
-import App from '../App'
 import { PortfolioPage } from '../pages/PortfolioPage'
 import { CustomerDetailsPage } from '../pages/CustomerDetailsPage'
-import { SimulatorPage } from '../pages/SimulatorPage'
 import { SystemStatusPage } from '../pages/SystemStatusPage'
 import { ChatPage } from '../pages/ChatPage'
 import { RMActionPanel } from '../components/customers/RMActionPanel'
 import { CustomerScenarioCard } from '../components/simulator/CustomerScenarioCard'
 import { RecommendationPanel } from '../components/customers/RecommendationPanel'
 import {
-  mockChatFollowUpResponse,
-  mockChatResponse,
   mockCustomer360C004,
   mockCustomer360C010,
   mockRecommendation,
   mockRecommendationC010,
 } from './fixtures'
 import { DEFAULT_SUGGESTED_QUESTIONS } from '../components/chat/suggestedQuestionDefaults'
-import { getExecutionPollCount, resetMockState, server } from './handlers'
+import { resetMockState, server } from './handlers'
 import { renderWithProviders } from './utils'
 
 const API = 'http://127.0.0.1:8001/api/v1'

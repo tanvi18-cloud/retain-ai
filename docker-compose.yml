@@ -1,6 +1,84 @@
-# RetainAI — Docker Compose (scaffold)
-#
-# Services will be defined in a later phase once the backend and frontend
-# Dockerfiles are implemented. Copy .env.example to .env before running.
+# RetainAI — local demonstration stack (backend + frontend + Mailpit)
+# Copy .env.example to .env before running. No real secrets are embedded here.
 
-services: {}
+name: retainai
+
+services:
+  mailpit:
+    image: axllent/mailpit:v1.22
+    container_name: retainai-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - retainai_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: retainai-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: development
+      DEBUG: "false"
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+      DATABASE_URL: sqlite:////data/retain_ai.db
+      MOCK_LLM_MODE: "true"
+      QWEN_BASE_URL: http://host.docker.internal:9000/v1
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      EMAIL_NOTIFICATIONS_ENABLED: "true"
+      FRONTEND_ORIGIN: http://localhost:8080
+    ports:
+      - "8000:8000"
+    volumes:
+      - retainai_data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mailpit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    networks:
+      - retainai_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api/v1
+        VITE_WS_BASE_URL: ws://localhost:8080/ws/alerts
+    container_name: retainai-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - retainai_network
+
+networks:
+  retainai_network:
+    name: retainai_network
+
+volumes:
+  retainai_data:
+    name: retainai_data

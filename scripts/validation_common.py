@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -28,7 +29,7 @@ def validation_settings(*, database_url: str | None = None):
     from app.core.config import Settings
 
     if database_url is None:
-        db_path = Path(tempfile.gettempdir()) / "retainai_validation.db"
+        db_path = Path(tempfile.gettempdir()) / f"retainai_validation_{uuid.uuid4().hex}.db"
         database_url = f"sqlite:///{db_path.as_posix()}"
 
     return Settings(

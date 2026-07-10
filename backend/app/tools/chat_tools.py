@@ -575,6 +575,28 @@ def build_evidence_from_tool(
                     ),
                 )
             )
+    elif tool_name == "get_chat_customer_recommendation" and hasattr(payload, "customer_id"):
+        if payload.has_recommendation:
+            evidence.append(
+                ChatEvidence(
+                    source_system="CRM",
+                    source_type="recommendation",
+                    customer_id=payload.customer_id,
+                    field="recommended_offer",
+                    value_summary=payload.recommended_offer_name or payload.recommended_offer_id,
+                )
+            )
+    elif tool_name == "get_chat_customer_summary" and hasattr(payload, "customer_id"):
+        if payload.recommended_offer_name:
+            evidence.append(
+                ChatEvidence(
+                    source_system="CORE_BANKING",
+                    source_type="offer_summary",
+                    customer_id=payload.customer_id,
+                    field="recommended_offer",
+                    value_summary=payload.recommended_offer_name,
+                )
+            )
     elif tool_name == "compare_customers":
         for row in payload:
             evidence.append(
