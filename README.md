@@ -830,15 +830,33 @@ curl -X POST http://localhost:8000/api/v1/chat/conversations/{conversation_id}/c
 
 ## Running Tests
 
-```bash
-# Backend
-cd backend
-uv run pytest
+See [docs/TESTING.md](./docs/TESTING.md) and [docs/VALIDATION.md](./docs/VALIDATION.md) for the full guide.
 
-# Frontend build verification
-cd frontend
+```bash
+# Backend lint + tests + coverage
+cd backend
+uv run ruff check .
+uv run pytest
+uv run pytest --cov=app --cov-report=term-missing
+
+# Validation scripts (mock LLM, no live Qwen required)
+uv run python ../scripts/validate_project.py
+uv run python ../scripts/run_demo_validation.py
+
+# Frontend build + tests
+cd ../frontend
 npm run build
+npm exec vitest run
 ```
+
+Expected demo validation outcomes:
+
+| Customer | Decision | Offer |
+|----------|----------|-------|
+| C001 | RETAIN | Home-loan offer |
+| C004 | Restricted lending | Repayment support only |
+| C008 | Retention | FD renewal |
+| C010 | NO_ACTION | None |
 
 ## Development Workflow
 

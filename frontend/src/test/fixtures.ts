@@ -185,6 +185,44 @@ export const mockCustomer360: Customer360 = {
   data_warnings: ['Credit history is older than 7 days'],
 }
 
+export const mockCustomer360C004: Customer360 = {
+  ...mockCustomer360,
+  customer: {
+    ...mockCustomer360.customer,
+    customer_id: 'C004',
+    full_name: 'Deepak Nair',
+    segment: 'MASS_AFFLUENT',
+  },
+  credit_profile: {
+    ...mockCustomer360.credit_profile,
+    customer_id: 'C004',
+    credit_score: 610,
+    max_dpd_12m: 60,
+    default_flag: false,
+  },
+  bureau_triggers: [],
+  data_warnings: ['Elevated DPD — lending offers restricted'],
+}
+
+export const mockCustomer360C010: Customer360 = {
+  ...mockCustomer360,
+  customer: {
+    ...mockCustomer360.customer,
+    customer_id: 'C010',
+    full_name: 'Neha Kapoor',
+    segment: 'STANDARD',
+  },
+  credit_profile: {
+    ...mockCustomer360.credit_profile,
+    customer_id: 'C010',
+    credit_score: 780,
+    max_dpd_12m: 0,
+  },
+  bureau_triggers: [],
+  recommendations: [],
+  data_warnings: [],
+}
+
 export const mockRecommendation: RecommendationDetail = {
   recommendation_id: 'REC-001',
   customer_id: 'C001',
@@ -226,6 +264,20 @@ export const mockRecommendation: RecommendationDetail = {
   created_at: '2026-07-08T09:00:00Z',
   updated_at: '2026-07-08T09:00:00Z',
   interactions: [],
+}
+
+export const mockRecommendationC010: RecommendationDetail = {
+  ...mockRecommendation,
+  recommendation_id: 'REC-010',
+  customer_id: 'C010',
+  decision: 'NO_ACTION',
+  priority_score: 18,
+  recommended_offer_id: null,
+  alternate_offer_id: null,
+  expected_net_benefit: 0,
+  revenue_at_risk: 0,
+  summary: 'Stable relationship with no retention action required.',
+  investigation_summary: 'No material risk signals detected.',
 }
 
 export const mockRulesOnly: RulesOnlyAnalysisResponse = {
@@ -456,9 +508,17 @@ export const mockChatResponse: ChatResponse = {
   used_tools: ['portfolio_summary'],
   evidence: mockConversationDetail.messages[1].evidence,
   warnings: ['Synthetic data — not for production decisions.'],
-  suggested_questions: ['Why is this customer high risk?'],
+  suggested_questions: ['Why is this customer high risk?', 'What offer should I discuss?'],
   generated_at: '2026-07-08T08:05:00Z',
   mode: 'MOCK',
+}
+
+export const mockChatFollowUpResponse: ChatResponse = {
+  ...mockChatResponse,
+  message_id: 'MSG-004',
+  answer: 'For C001, OFFER-HL-FEE is eligible for discussion based on current signals.',
+  intent: 'CUSTOMER_OFFER_EXPLANATION',
+  suggested_questions: [],
 }
 
 export const mockEventResponse: IncomingEventResponse = {
