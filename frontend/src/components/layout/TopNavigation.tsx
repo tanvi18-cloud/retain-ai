@@ -4,6 +4,7 @@ import { Bell, Menu } from 'lucide-react'
 
 import { getEnv, getRmUser } from '../../api/env'
 import { fetchPortfolioSummary } from '../../api/portfolio'
+import { useDemoMode } from '../../hooks/useDemoMode'
 import { ConnectionStatus } from '../system/ConnectionStatus'
 import { cn } from '../../utils/cn'
 import { queryKeys } from '../../utils/queryKeys'
@@ -18,8 +19,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/system': 'System Status',
 }
 
-function usePageTitle(pathname: string): string {
+function usePageTitle(pathname: string, demoMode: boolean): string {
   if (pathname.startsWith('/customers/')) return 'Customer 360'
+  if (pathname === '/' && demoMode) return 'Executive Dashboard'
   return PAGE_TITLES[pathname] ?? 'RetainAI'
 }
 
@@ -31,16 +33,19 @@ export function TopNavigation({ onMenuClick }: TopNavigationProps) {
   const location = useLocation()
   const env = getEnv()
   const rm = getRmUser()
-  const pageTitle = usePageTitle(location.pathname)
+  const { demoMode } = useDemoMode()
+  const pageTitle = usePageTitle(location.pathname, demoMode)
 
   const portfolioQuery = useQuery({
     queryKey: queryKeys.portfolio.summary,
     queryFn: fetchPortfolioSummary,
     staleTime: 30_000,
     refetchInterval: 60_000,
+    // Avoid noisy "API unavailable" chips in demo mode when the backend isn't running.
+    enabled: !demoMode,
   })
 
-  const unacknowledgedCount = portfolioQuery.data?.unacknowledged_alerts ?? 0
+  const unacknowledgedCount = demoMode ? 7 : (portfolioQuery.data?.unacknowledged_alerts ?? 0)
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -62,7 +67,7 @@ export function TopNavigation({ onMenuClick }: TopNavigationProps) {
             </span>
             <p className="hidden text-sm text-slate-500 sm:block">Customer Retention Copilot</p>
             <Badge variant="warning">Synthetic data</Badge>
-            <ConnectionStatus compact className="hidden md:flex" />
+            {demoMode ? null : <ConnectionStatus compact className="hidden md:flex" />}
           </div>
           <h1 className="truncate text-lg font-semibold text-slate-900">{pageTitle}</h1>
         </div>
@@ -95,9 +100,11 @@ export function TopNavigation({ onMenuClick }: TopNavigationProps) {
         </div>
       </div>
 
-      <div className="border-t border-slate-100 px-4 py-2 md:hidden">
-        <ConnectionStatus compact />
-      </div>
+      {demoMode ? null : (
+        <div className="border-t border-slate-100 px-4 py-2 md:hidden">
+          <ConnectionStatus compact />
+        </div>
+      )}
     </header>
   )
 }

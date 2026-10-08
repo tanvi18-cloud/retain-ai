@@ -21,7 +21,7 @@ type NavItem = {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'Portfolio', icon: LayoutDashboard },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/alerts', label: 'Alerts', icon: Bell },
   { to: '/chat', label: 'RM Copilot', icon: Bot },
@@ -63,15 +63,27 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 to={item.to}
                 onClick={onNavigate}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400',
+                  'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400',
                   active
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
                 )}
                 aria-current={active ? 'page' : undefined}
               >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {active ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-y-1.5 left-0 w-0.5 rounded-r-full bg-emerald-500"
+                  />
+                ) : null}
+                <Icon
+                  className={cn(
+                    'h-4 w-4 shrink-0',
+                    active ? 'text-emerald-600' : 'text-slate-500',
+                  )}
+                  aria-hidden="true"
+                />
                 <span className="flex-1">{item.label}</span>
               </Link>
             </li>

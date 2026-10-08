@@ -4,7 +4,7 @@ import { Bell, Bot, LayoutDashboard, Users } from 'lucide-react'
 import { cn } from '../../utils/cn'
 
 const MOBILE_ITEMS = [
-  { to: '/', label: 'Portfolio', icon: LayoutDashboard },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/customers', label: 'Customers', icon: Users },
   { to: '/alerts', label: 'Alerts', icon: Bell },
   { to: '/chat', label: 'Copilot', icon: Bot },
@@ -32,8 +32,8 @@ export function MobileNavigation() {
                 to={item.to}
                 className={cn(
                   'flex min-h-14 flex-col items-center justify-center gap-1 px-2 py-2 text-xs font-medium',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-400',
-                  active ? 'text-slate-900' : 'text-slate-500',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400',
+                  active ? 'text-emerald-700' : 'text-slate-500',
                 )}
                 aria-current={active ? 'page' : undefined}
               >

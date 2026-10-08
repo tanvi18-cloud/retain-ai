@@ -88,3 +88,56 @@ textarea {
     min-height: 2.5rem;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Demo dashboard animations
+   ───────────────────────────────────────────────────────────────────────── */
+
+@keyframes retainai-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes retainai-blob-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(20px, -30px, 0) scale(1.08);
+  }
+}
+
+@keyframes retainai-blob-slower {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-30px, 20px, 0) scale(1.12);
+  }
+}
+
+.animate-shimmer {
+  animation: retainai-shimmer 2.6s linear infinite;
+}
+
+.animate-blob-slow {
+  animation: retainai-blob-slow 14s ease-in-out infinite;
+}
+
+.animate-blob-slower {
+  animation: retainai-blob-slower 20s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .animate-blob-slow,
+  .animate-blob-slower {
+    animation: none;
+  }
+}

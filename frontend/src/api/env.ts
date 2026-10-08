@@ -8,6 +8,7 @@ interface AppEnv {
   rmName: string
   enableSimulator: boolean
   enableSystemPage: boolean
+  demoMode: boolean
 }
 
 function readEnv(key: string): string | undefined {
@@ -55,6 +56,7 @@ export function getEnv(): AppEnv {
     rmName: requireEnv('VITE_RM_NAME'),
     enableSimulator: parseBoolean(readEnv('VITE_ENABLE_SIMULATOR') ?? 'true', true),
     enableSystemPage: parseBoolean(readEnv('VITE_ENABLE_SYSTEM_PAGE') ?? 'true', true),
+    demoMode: parseBoolean(readEnv('VITE_DEMO_MODE') ?? 'true', true),
   }
 
   return cachedEnv

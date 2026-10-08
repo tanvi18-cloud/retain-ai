@@ -3,7 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from '../components/layout/AppShell'
 import { RouteSkeleton } from '../components/layout/RouteSkeleton'
+import { useDemoMode } from '../hooks/useDemoMode'
 import { CustomersPage } from '../pages/CustomersPage'
+import { DemoDashboardPage } from '../pages/DemoDashboardPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PortfolioPage } from '../pages/PortfolioPage'
 
@@ -28,10 +30,13 @@ function LazyRoute({ children }: { children: React.ReactNode }) {
 }
 
 export function AppRoutes() {
+  const { demoMode } = useDemoMode()
+
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<PortfolioPage />} />
+        <Route index element={demoMode ? <DemoDashboardPage /> : <PortfolioPage />} />
+        <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route
           path="customers/:customerId"
