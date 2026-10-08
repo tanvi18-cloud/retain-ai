@@ -24,13 +24,40 @@ export interface HeadlineKpi {
   label: string
   value: string
   caption: string
+  /** 12-month trend sparkline. */
+  trend: number[]
+  trendTone: 'positive' | 'neutral'
 }
 
 export const headlineKpis: HeadlineKpi[] = [
-  { label: 'Portfolio AUM', value: '₹1,284 Cr', caption: 'Assets under RM management' },
-  { label: 'Customers covered', value: '12,480', caption: 'Across 4 segments · 6 regions' },
-  { label: 'Net retention rate', value: '94.2%', caption: 'Trailing 12 months · YoY +3.1 pts' },
-  { label: 'Revenue saved YTD', value: '₹46.8 Cr', caption: 'Attributed to agent-assisted saves' },
+  {
+    label: 'Portfolio AUM',
+    value: '₹1,284 Cr',
+    caption: 'Assets under RM management',
+    trend: [1098, 1121, 1146, 1172, 1189, 1204, 1218, 1231, 1246, 1259, 1272, 1284],
+    trendTone: 'positive',
+  },
+  {
+    label: 'Customers covered',
+    value: '12,480',
+    caption: 'Across 4 segments · 6 regions',
+    trend: [11_820, 11_880, 11_942, 12_006, 12_088, 12_154, 12_212, 12_271, 12_326, 12_388, 12_441, 12_480],
+    trendTone: 'positive',
+  },
+  {
+    label: 'Net retention rate',
+    value: '94.2%',
+    caption: 'Trailing 12 months · YoY +3.1 pts',
+    trend: [91.1, 91.4, 91.8, 92.1, 92.4, 92.6, 92.9, 93.2, 93.5, 93.8, 94.0, 94.2],
+    trendTone: 'positive',
+  },
+  {
+    label: 'Revenue saved YTD',
+    value: '₹46.8 Cr',
+    caption: 'Attributed to agent-assisted saves',
+    trend: [2.6, 5.7, 9.1, 12.7, 16.7, 21.0, 25.6, 30.0, 34.9, 40.1, 45.2, 46.8],
+    trendTone: 'positive',
+  },
 ]
 
 export interface BenchmarkKpi {
@@ -372,4 +399,636 @@ export const segmentPerformance: SegmentRow[] = [
   { segment: 'PRIORITY', customers: 1240, retentionPct: 95.2, revenueAtRiskCr: 11.8, productsPerCustomer: 3.8 },
   { segment: 'MASS_AFFLUENT', customers: 3860, retentionPct: 93.1, revenueAtRiskCr: 14.2, productsPerCustomer: 2.9 },
   { segment: 'STANDARD', customers: 7196, retentionPct: 91.4, revenueAtRiskCr: 14.4, productsPerCustomer: 2.1 },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Channel performance (comms channel save-rate benchmark)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ChannelRow {
+  channel: 'Phone' | 'Email' | 'In-app' | 'SMS'
+  contacted: number
+  retained: number
+  saveRatePct: number
+  avgResponseHours: number
+}
+
+export const channelPerformance: ChannelRow[] = [
+  { channel: 'Phone', contacted: 412, retained: 338, saveRatePct: 82.0, avgResponseHours: 1.4 },
+  { channel: 'In-app', contacted: 268, retained: 198, saveRatePct: 73.9, avgResponseHours: 0.6 },
+  { channel: 'Email', contacted: 621, retained: 403, saveRatePct: 64.9, avgResponseHours: 4.8 },
+  { channel: 'SMS', contacted: 184, retained: 103, saveRatePct: 56.0, avgResponseHours: 2.1 },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Model drift (14-day AUC trend for the churn model)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const modelDrift14d: { day: number; auc: number }[] = [
+  { day: 1, auc: 88.1 },
+  { day: 2, auc: 88.4 },
+  { day: 3, auc: 88.6 },
+  { day: 4, auc: 88.2 },
+  { day: 5, auc: 88.5 },
+  { day: 6, auc: 88.8 },
+  { day: 7, auc: 89.0 },
+  { day: 8, auc: 88.9 },
+  { day: 9, auc: 89.1 },
+  { day: 10, auc: 89.3 },
+  { day: 11, auc: 89.0 },
+  { day: 12, auc: 89.2 },
+  { day: 13, auc: 88.9 },
+  { day: 14, auc: 89.0 },
+]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cohort retention — 8 monthly cohorts × 8 months since join (lower-left is "future")
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CohortRow {
+  cohort: string
+  customers: number
+  /** Retention % by month index (0 = joining month). `null` = cohort too young. */
+  retention: (number | null)[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer dossier (what the modal shows when a priority customer is clicked)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DossierVerdict = 'RETAIN' | 'REVIEW' | 'DO_NOT_RETAIN'
+
+export interface RedFlag {
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  label: string
+  detail: string
+}
+
+export interface CrossSellOffer {
+  offerId: string
+  offerName: string
+  product: string
+  uplift: string
+  acceptanceProb: number
+  rationale: string
+}
+
+export interface PolicyBlock {
+  title: string
+  detail: string
+}
+
+export interface CustomerDossier {
+  id: string
+  name: string
+  segment: 'PRIVATE' | 'PRIORITY' | 'MASS_AFFLUENT' | 'STANDARD'
+  priority: number
+  relationshipYears: number
+  preferredChannel: 'Phone' | 'Email' | 'SMS' | 'In-app'
+  revenueAtRiskLakh: number
+  churnScore: number
+  valueScore: number
+  verdict: {
+    label: DossierVerdict
+    headline: string
+    reasons: string[]
+  }
+  redFlags: RedFlag[]
+  credit: {
+    creditScore: number
+    scoreBand: 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR'
+    maxDpd12m: number
+    utilizationPct: number
+    activeLoans: number
+    recentInquiries: number
+    defaultFlag: boolean
+  }
+  banking: {
+    currentBalanceLakh: number
+    avgBalance90dLakh: number
+    salaryAccount: boolean
+    salaryReceivedThisMonth: boolean
+    monthlyInflowLakh: number
+    monthlyOutflowLakh: number
+    balanceChange30dPct: number
+    cardSpendChangePct: number
+    forexSpend30dLakh: number
+    competitorTransferDetected: boolean
+    productInactivityDays: number
+  }
+  offers?: CrossSellOffer[]
+  policyBlocks?: PolicyBlock[]
+}
+
+export const customerDossiers: Record<string, CustomerDossier> = {
+  'C-00412': {
+    id: 'C-00412',
+    name: 'Aarav Mehta',
+    segment: 'PRIVATE',
+    priority: 94,
+    relationshipYears: 11,
+    preferredChannel: 'Phone',
+    revenueAtRiskLakh: 42.0,
+    churnScore: 88,
+    valueScore: 91,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'High-value customer actively shopping a home loan externally. Retain with switch offer.',
+      reasons: [
+        'External home-loan inquiry detected via bureau trigger (₹1.2 Cr, HFC-category 2).',
+        'Credit profile excellent (CIBIL 812, 0 DPD, utilisation 18%).',
+        'Private-segment customer · ₹42 L lifetime revenue · 11-year relationship.',
+        'Fully eligible for the OFFER-HL-SWITCH-21 approved offer catalog.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'External home-loan inquiry', detail: 'Bureau pulled 4 days ago · ₹1.2 Cr tenure 20 yr' },
+      { severity: 'MEDIUM', label: 'Falling card spend', detail: 'Card spend down 38% QoQ — attention drift signal' },
+    ],
+    credit: {
+      creditScore: 812,
+      scoreBand: 'EXCELLENT',
+      maxDpd12m: 0,
+      utilizationPct: 18,
+      activeLoans: 1,
+      recentInquiries: 2,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 62.4,
+      avgBalance90dLakh: 71.8,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 8.4,
+      monthlyOutflowLakh: 7.1,
+      balanceChange30dPct: -13.1,
+      cardSpendChangePct: -38,
+      forexSpend30dLakh: 1.2,
+      competitorTransferDetected: false,
+      productInactivityDays: 0,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-HL-SWITCH-21',
+        offerName: 'Home loan switch @ 8.35% + processing fee waiver',
+        product: 'Home loan',
+        uplift: '+₹5.2 L lifetime value',
+        acceptanceProb: 71,
+        rationale: '72 bps below the external quote he received. Zero DPD, 11-yr relationship — approved tier A.',
+      },
+      {
+        offerId: 'OFFER-WEALTH-07',
+        offerName: 'Private-wealth portfolio review',
+        product: 'Wealth management',
+        uplift: '+₹2.8 L fee uplift',
+        acceptanceProb: 48,
+        rationale: 'Private-segment with ₹62 L idle balance — complementary conversation to the HL offer.',
+      },
+    ],
+  },
+
+  'C-03101': {
+    id: 'C-03101',
+    name: 'Lavanya Pai',
+    segment: 'PRIVATE',
+    priority: 92,
+    relationshipYears: 8,
+    preferredChannel: 'Phone',
+    revenueAtRiskLakh: 48.0,
+    churnScore: 85,
+    valueScore: 94,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'Salary inflow stopped 2 cycles — likely job change. Retain through relationship offer + investigation.',
+      reasons: [
+        'No salary credit for 62 days (last credit ₹4.8 L / cycle).',
+        'Average 90-day balance dropped 41% in last 30 days.',
+        'Credit profile strong (CIBIL 798, 0 DPD, 1 active loan).',
+        'High strategic value — ₹48 L exposure, 8-yr relationship.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'Salary credit paused', detail: 'No inflow for 2 cycles — potential job change or employer switch' },
+      { severity: 'HIGH', label: 'Balance decay', detail: '90-day avg balance down 41% · ₹18.4 L moved out in last 30 days' },
+      { severity: 'MEDIUM', label: 'Login frequency down', detail: 'App logins down 68% QoQ' },
+    ],
+    credit: {
+      creditScore: 798,
+      scoreBand: 'EXCELLENT',
+      maxDpd12m: 0,
+      utilizationPct: 22,
+      activeLoans: 1,
+      recentInquiries: 1,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 11.6,
+      avgBalance90dLakh: 19.8,
+      salaryAccount: true,
+      salaryReceivedThisMonth: false,
+      monthlyInflowLakh: 0.4,
+      monthlyOutflowLakh: 2.9,
+      balanceChange30dPct: -41.3,
+      cardSpendChangePct: -12,
+      forexSpend30dLakh: 0.2,
+      competitorTransferDetected: true,
+      productInactivityDays: 18,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-RELATIONSHIP-02',
+        offerName: 'Relationship upgrade — fee-free Private banking refresh',
+        product: 'Relationship / wealth',
+        uplift: '+₹3.4 L retained value',
+        acceptanceProb: 58,
+        rationale: 'Private-segment retention play — reinforces benefits before employer-driven churn finalises.',
+      },
+      {
+        offerId: 'OFFER-SAVE-PLUS-11',
+        offerName: 'Save+ sweep account @ 6.1% effective yield',
+        product: 'Savings',
+        uplift: '+₹0.9 L deposit uplift',
+        acceptanceProb: 44,
+        rationale: 'Idle ₹11.6 L balance deserves a yield story — pairs with retention outreach.',
+      },
+    ],
+  },
+
+  'C-01204': {
+    id: 'C-01204',
+    name: 'Rohan Verma',
+    segment: 'PRIORITY',
+    priority: 88,
+    relationshipYears: 6,
+    preferredChannel: 'Email',
+    revenueAtRiskLakh: 36.0,
+    churnScore: 79,
+    valueScore: 86,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'High forex spend + travel card inactivity. Retain with upgraded travel card.',
+      reasons: [
+        'Forex spend ₹3.1 L in last 30 days (across 2 countries).',
+        'Current travel card inactive 48 days.',
+        'Credit profile good (CIBIL 764, 0 DPD).',
+        'OFFER-TRAVEL-15 approved — zero forex markup + lounge access.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'External forex spend spike', detail: '₹3.1 L spent via non-bank wallet in last 30 days' },
+      { severity: 'MEDIUM', label: 'Travel card dormant', detail: 'No swipe for 48 days — competitor card likely active' },
+    ],
+    credit: {
+      creditScore: 764,
+      scoreBand: 'GOOD',
+      maxDpd12m: 0,
+      utilizationPct: 34,
+      activeLoans: 2,
+      recentInquiries: 1,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 18.2,
+      avgBalance90dLakh: 17.4,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 3.6,
+      monthlyOutflowLakh: 3.2,
+      balanceChange30dPct: 4.6,
+      cardSpendChangePct: 12,
+      forexSpend30dLakh: 3.1,
+      competitorTransferDetected: false,
+      productInactivityDays: 48,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-TRAVEL-15',
+        offerName: 'Platinum travel card — 0% forex markup + 8 lounge visits',
+        product: 'Credit card',
+        uplift: '+₹1.6 L interchange + fee',
+        acceptanceProb: 67,
+        rationale: 'Direct substitute for the competitor card the forex pattern suggests.',
+      },
+    ],
+  },
+
+  'C-00761': {
+    id: 'C-00761',
+    name: 'Priya Shah',
+    segment: 'PRIORITY',
+    priority: 85,
+    relationshipYears: 9,
+    preferredChannel: 'Phone',
+    revenueAtRiskLakh: 28.0,
+    churnScore: 82,
+    valueScore: 72,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'Fixed deposit of ₹22 L maturing in 14 days. Retain with renewal + step-up offer.',
+      reasons: [
+        'FD-847 maturing 22 Oct · principal ₹22 L.',
+        'No renewal instructions on file — passive churn risk.',
+        'Clean credit (CIBIL 751, 0 DPD).',
+        'OFFER-FD-RENEW-07 pre-approved · +25 bps step-up.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'FD maturing · no auto-renew', detail: '₹22 L matures in 14 days — competitor banks will outbid' },
+      { severity: 'LOW', label: 'Reduced engagement', detail: 'Branch visits down 60% YoY — but digital usage steady' },
+    ],
+    credit: {
+      creditScore: 751,
+      scoreBand: 'GOOD',
+      maxDpd12m: 0,
+      utilizationPct: 11,
+      activeLoans: 0,
+      recentInquiries: 0,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 9.8,
+      avgBalance90dLakh: 9.4,
+      salaryAccount: false,
+      salaryReceivedThisMonth: false,
+      monthlyInflowLakh: 1.1,
+      monthlyOutflowLakh: 0.9,
+      balanceChange30dPct: 4.2,
+      cardSpendChangePct: -3,
+      forexSpend30dLakh: 0,
+      competitorTransferDetected: false,
+      productInactivityDays: 12,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-FD-RENEW-07',
+        offerName: 'FD renewal @ 7.65% + 25 bps loyalty step-up',
+        product: 'Fixed deposit',
+        uplift: '+₹1.8 L retained interest income',
+        acceptanceProb: 74,
+        rationale: '9-year relationship · competitor FD rates currently at 7.4% — clear price advantage.',
+      },
+    ],
+  },
+
+  'C-00927': {
+    id: 'C-00927',
+    name: 'Vikram Rao',
+    segment: 'PRIORITY',
+    priority: 82,
+    relationshipYears: 7,
+    preferredChannel: 'Phone',
+    revenueAtRiskLakh: 31.0,
+    churnScore: 72,
+    valueScore: 83,
+    verdict: {
+      label: 'REVIEW',
+      headline: 'Credit stress rising. Do NOT upsell new credit — offer repayment support instead.',
+      reasons: [
+        'Credit utilisation at 94% across 2 cards.',
+        'Max DPD of 32 days in last 12 months (card EMI).',
+        'Two recent credit inquiries at other banks — likely consolidating debt.',
+        'Policy v4.2 blocks new lending offers while max DPD > 30.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'Credit utilisation 94%', detail: 'Both primary + supplementary cards near limit' },
+      { severity: 'HIGH', label: 'Past DPD', detail: '32 DPD on card EMI (May) · remediated but visible on bureau' },
+      { severity: 'MEDIUM', label: 'External debt inquiries', detail: '2 enquiries from NBFCs in last 30 days — refinance likely' },
+    ],
+    credit: {
+      creditScore: 684,
+      scoreBand: 'FAIR',
+      maxDpd12m: 32,
+      utilizationPct: 94,
+      activeLoans: 3,
+      recentInquiries: 2,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 2.6,
+      avgBalance90dLakh: 5.1,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 2.4,
+      monthlyOutflowLakh: 2.6,
+      balanceChange30dPct: -48.9,
+      cardSpendChangePct: 61,
+      forexSpend30dLakh: 0,
+      competitorTransferDetected: false,
+      productInactivityDays: 0,
+    },
+    policyBlocks: [
+      {
+        title: 'No new lending offers',
+        detail: 'Policy v4.2 blocks new credit while max DPD in trailing 12 months > 30 days.',
+      },
+      {
+        title: 'Risk Advisor flag',
+        detail: 'Agent flagged — surface balance consolidation / counselling only. RM to validate.',
+      },
+    ],
+    offers: [
+      {
+        offerId: 'OFFER-RESTRUCTURE-02',
+        offerName: 'Debt restructure — EMI holiday + consolidated 24-mo plan',
+        product: 'Loan servicing',
+        uplift: 'Preserves 7-yr relationship',
+        acceptanceProb: 62,
+        rationale: 'Repayment support only. Keeps the customer whole without extending new credit.',
+      },
+    ],
+  },
+
+  'C-03234': {
+    id: 'C-03234',
+    name: 'Anika Bhat',
+    segment: 'PRIORITY',
+    priority: 80,
+    relationshipYears: 5,
+    preferredChannel: 'In-app',
+    revenueAtRiskLakh: 27.0,
+    churnScore: 73,
+    valueScore: 77,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'Large outbound transfer to competitor bank. Retain with Save+ yield story.',
+      reasons: [
+        '₹8.4 L transferred to competitor neo-bank in last 14 days.',
+        'Credit profile strong (CIBIL 772, 0 DPD).',
+        'High digital engagement — in-app channel preferred.',
+        'OFFER-SAVE-PLUS-11 pre-approved · competitive yield.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'Competitor transfer', detail: '₹8.4 L moved out in 14 days to a neo-bank beneficiary' },
+      { severity: 'MEDIUM', label: 'Yield-seeking behaviour', detail: 'Searched "best savings account 2026" twice in-app' },
+    ],
+    credit: {
+      creditScore: 772,
+      scoreBand: 'GOOD',
+      maxDpd12m: 0,
+      utilizationPct: 27,
+      activeLoans: 1,
+      recentInquiries: 0,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 6.2,
+      avgBalance90dLakh: 14.6,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 2.9,
+      monthlyOutflowLakh: 2.4,
+      balanceChange30dPct: -57.5,
+      cardSpendChangePct: 4,
+      forexSpend30dLakh: 0.1,
+      competitorTransferDetected: true,
+      productInactivityDays: 3,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-SAVE-PLUS-11',
+        offerName: 'Save+ sweep account @ 6.1% effective yield',
+        product: 'Savings',
+        uplift: '+₹1.1 L deposit uplift',
+        acceptanceProb: 69,
+        rationale: 'Directly answers the yield-seeking signal · matches the competitor product she just funded.',
+      },
+      {
+        offerId: 'OFFER-WEALTH-STARTER-04',
+        offerName: 'Mutual-fund starter · zero AMC first year',
+        product: 'Investments',
+        uplift: '+₹0.6 L AUM uplift',
+        acceptanceProb: 41,
+        rationale: 'High digital engagement + idle cash — natural first-time investment conversation.',
+      },
+    ],
+  },
+
+  'C-00318': {
+    id: 'C-00318',
+    name: 'Ananya Nair',
+    segment: 'MASS_AFFLUENT',
+    priority: 78,
+    relationshipYears: 4,
+    preferredChannel: 'Email',
+    revenueAtRiskLakh: 21.0,
+    churnScore: 76,
+    valueScore: 69,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'Early-stage home-loan shopping. Retain with pre-approved sanction letter.',
+      reasons: [
+        'Bureau showed 1 HFC inquiry (soft pull) 8 days ago.',
+        'Clean credit (CIBIL 741, 0 DPD).',
+        'Steady salary inflow of ₹2.6 L/month.',
+        'OFFER-HL-SWITCH-21 fully eligible.',
+      ],
+    },
+    redFlags: [
+      { severity: 'MEDIUM', label: 'External home-loan inquiry', detail: 'Soft pull from HFC — early shopping stage' },
+      { severity: 'LOW', label: 'Mortgage calculator usage', detail: '3 sessions in in-app loan calculator over past week' },
+    ],
+    credit: {
+      creditScore: 741,
+      scoreBand: 'GOOD',
+      maxDpd12m: 0,
+      utilizationPct: 29,
+      activeLoans: 0,
+      recentInquiries: 1,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 4.8,
+      avgBalance90dLakh: 4.1,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 2.6,
+      monthlyOutflowLakh: 2.1,
+      balanceChange30dPct: 7.4,
+      cardSpendChangePct: 9,
+      forexSpend30dLakh: 0,
+      competitorTransferDetected: false,
+      productInactivityDays: 1,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-HL-SWITCH-21',
+        offerName: 'Pre-approved home-loan sanction @ 8.45%',
+        product: 'Home loan',
+        uplift: '+₹2.3 L lifetime value',
+        acceptanceProb: 54,
+        rationale: 'Early-stage shopper — a pre-approved letter wins over the HFC inquiry.',
+      },
+    ],
+  },
+
+  'C-01566': {
+    id: 'C-01566',
+    name: 'Isha Kapoor',
+    segment: 'MASS_AFFLUENT',
+    priority: 75,
+    relationshipYears: 3,
+    preferredChannel: 'SMS',
+    revenueAtRiskLakh: 19.0,
+    churnScore: 70,
+    valueScore: 61,
+    verdict: {
+      label: 'RETAIN',
+      headline: 'Card spend down 62% — reward friction. Retain with rewards upgrade.',
+      reasons: [
+        'Credit-card spend down 62% QoQ.',
+        'Points balance ₹14,200 unredeemed > 6 months.',
+        'No DPD, clean file.',
+        'OFFER-CARD-REWARDS-09 pre-approved.',
+      ],
+    },
+    redFlags: [
+      { severity: 'HIGH', label: 'Card spend down 62%', detail: 'Primary card activity collapsed — likely substitute card in use' },
+      { severity: 'MEDIUM', label: 'Unused rewards', detail: '₹14.2 K points stranded for 6+ months' },
+    ],
+    credit: {
+      creditScore: 719,
+      scoreBand: 'GOOD',
+      maxDpd12m: 0,
+      utilizationPct: 41,
+      activeLoans: 1,
+      recentInquiries: 0,
+      defaultFlag: false,
+    },
+    banking: {
+      currentBalanceLakh: 3.1,
+      avgBalance90dLakh: 3.6,
+      salaryAccount: true,
+      salaryReceivedThisMonth: true,
+      monthlyInflowLakh: 1.4,
+      monthlyOutflowLakh: 1.3,
+      balanceChange30dPct: -8.1,
+      cardSpendChangePct: -62,
+      forexSpend30dLakh: 0,
+      competitorTransferDetected: false,
+      productInactivityDays: 9,
+    },
+    offers: [
+      {
+        offerId: 'OFFER-CARD-REWARDS-09',
+        offerName: 'Card refresh · 5× points on top-3 spend categories',
+        product: 'Credit card',
+        uplift: '+₹0.9 L interchange',
+        acceptanceProb: 51,
+        rationale: 'Clear reward-friction signal · low-cost reactivation play.',
+      },
+    ],
+  },
+}
+
+export const cohortRetention: CohortRow[] = [
+  { cohort: 'Mar', customers: 412, retention: [100, 97.6, 95.1, 93.3, 91.8, 90.4, 89.3, 88.6] },
+  { cohort: 'Apr', customers: 456, retention: [100, 97.8, 95.6, 93.9, 92.4, 91.1, 89.9, null] },
+  { cohort: 'May', customers: 487, retention: [100, 98.1, 95.9, 94.2, 92.7, 91.5, null, null] },
+  { cohort: 'Jun', customers: 503, retention: [100, 98.3, 96.4, 94.8, 93.2, null, null, null] },
+  { cohort: 'Jul', customers: 528, retention: [100, 98.5, 96.6, 95.1, null, null, null, null] },
+  { cohort: 'Aug', customers: 541, retention: [100, 98.7, 96.9, null, null, null, null, null] },
+  { cohort: 'Sep', customers: 562, retention: [100, 98.9, null, null, null, null, null, null] },
+  { cohort: 'Oct', customers: 589, retention: [100, null, null, null, null, null, null, null] },
 ]
